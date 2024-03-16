@@ -12,7 +12,7 @@ Based on the work of
   madmartin (Enabling Logic)
 
 Source code at
- 
+  https://github.com/wildham0/FFRMapEditorMono
 
 *** Controls ***
 Main Map:

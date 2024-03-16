@@ -39,7 +39,7 @@ namespace FFRMapEditorMono
 				"   tetron (Overworld Map Format)\n" +
 				"   madmartin (Enabling Logic)\n\n" +
 				"Source code at\n" +
-				"   http...\n\n" +
+				"   https://github.com/wildham0/FFRMapEditorMono\n\n" +
 				"Randomizer\n" +
 				"   ffrando.com";
 
@@ -91,7 +91,6 @@ namespace FFRMapEditorMono
 			spriteBatch.Draw(infoTexture, new Vector2(Position.X + (8 * zoom), Position.Y + (8 * zoom)), new Rectangle(8, 8, 8, 8), Color.White, 0.0f, new Vector2(0.0f, 0.0f), new Vector2(zoom * borderwidth, zoom * borderheight), SpriteEffects.None, 0.0f);
 
 			spriteBatch.DrawString(font, windowText, new Vector2(Position.X + 20, Position.Y + 20), Color.White);
-			//spriteBatch.DrawString(font, infotextright, new Vector2(Position.X + (infoTexture.Width * zoom / 2), Position.Y + 20), Color.White);
 
 			spriteBatch.End();
 			
