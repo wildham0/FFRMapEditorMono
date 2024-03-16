@@ -90,7 +90,7 @@ namespace FFRMapEditorMono
 			overworld = new(tileSetTexture, font, domainGroupsIcons, docksIcons, mapobjectsIcons, GraphicsDevice, _spriteBatch);
 
 			// Create menus
-			toolsMenu = new(toolsTexture, selectors16, font);
+			toolsMenu = new(toolsTexture, selectors32, font);
 			domainsPicker = new(domainGroupsIcons, selectors32, font);
 			docksPicker = new(docksIcons, selectors32, placingIcons, font);
 			brushPicker = new(brushesTexture, selectors16, font);

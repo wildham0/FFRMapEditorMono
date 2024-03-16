@@ -172,10 +172,10 @@ namespace FFRMapEditorMono
 
 			Show = true;
 			Position = new Vector2(0, 0);
-			zoom = 2.0f;
-			optionsRows = 4;
+			zoom = 1.0f;
+			optionsRows = 5;
 			optionsColumns = 2;
-			optionsSize = 16;
+			optionsSize = 32;
 
 			options = toolsTasks;
 
@@ -205,5 +205,29 @@ namespace FFRMapEditorMono
 			("Exit", new() { new EditorTask() { Type = EditorTasks.ExitProgram } }, new() { new EditorTask() { Type = EditorTasks.None } }),
 			("Info", new() { new EditorTask() { Type = EditorTasks.ToggleInfoWindow } }, new() { new EditorTask() { Type = EditorTasks.None } }),
 		};
+
+		public override void Draw(SpriteBatch spriteBatch, SpriteFont font, Vector2 mouseCursor)
+		{
+
+			if (!Show)
+			{
+				return;
+			}
+
+			Rectangle window = new Rectangle((int)Position.X, (int)Position.Y, (int)(optionsWindow.Width * zoom), (int)(optionsWindow.Height * zoom));
+
+			spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+
+			// Draw Background
+			Texture2D background = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
+			background.SetData(new[] { Color.DarkSlateGray });
+
+
+			spriteBatch.Draw(background, Position, new Rectangle(0, 0, optionsWindow.Width, optionsWindow.Height), new Color(255, 255, 255, 225), 0.0f, new Vector2(0.0f, 0.0f), zoom, SpriteEffects.None, 0.0f);
+
+			spriteBatch.End();
+			
+			base.Draw(spriteBatch, font, mouseCursor);
+		}
 	}
 }

@@ -96,7 +96,7 @@ namespace FFRMapEditorMono
 
 			return window.Contains(mousecursor) && Show;
 		}
-		public void Draw(SpriteBatch spriteBatch, SpriteFont font, Vector2 mouseCursor)
+		public virtual void Draw(SpriteBatch spriteBatch, SpriteFont font, Vector2 mouseCursor)
 		{
 			if (!Show)
 			{
