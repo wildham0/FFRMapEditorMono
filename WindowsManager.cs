@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -64,6 +65,12 @@ namespace FFRMapEditorMono
 		SetSavingMode,
 		SaveWarningUpdate,
 
+		NewMapWarningOpen,
+		NewMapWarningClose,
+
+		LoadMapWarningOpen,
+		LoadMapWarningClose,
+
 		ExitProgramHard,
 		ExitProgram
 
@@ -85,15 +92,14 @@ namespace FFRMapEditorMono
 		private BrushPicker BrushWindow;
 		private TemplatePicker TemplateWindow;
 		private InfoWindow InfoWindow;
-		private ExitWarningWindow ExitWarningWindow;
-		private SaveWarningWindow SaveWarningWindow;
 		public bool ShowDomainOverlay { get => showDomainOverlay || DomainsWindow.Show; }
 		public bool ShowDockOverlay { get => showDockOverlay || DocksWindow.Show; }
 		public bool ShowMapObjectsOverlay { get => showMapObjectsOverlay; }
 		private bool showDomainOverlay;
 		private bool showDockOverlay;
 		private bool showMapObjectsOverlay;
-		public WindowsManager(ToolsMenu _toolsmenu, TilePicker _tilepicker, BrushPicker _brushpicker, DomainPicker _domainpicker, DockPicker _dockppicker, MapObjectPicker _mapobjectpicker, TemplatePicker _templatepicker, InfoWindow _infowindow, ExitWarningWindow _exitwindow, SaveWarningWindow _saveWarningWindow)
+		private List<WarningWindow> warningWindows;
+		public WindowsManager(ToolsMenu _toolsmenu, TilePicker _tilepicker, BrushPicker _brushpicker, DomainPicker _domainpicker, DockPicker _dockppicker, MapObjectPicker _mapobjectpicker, TemplatePicker _templatepicker, InfoWindow _infowindow)
 		{
 			ToolsWindow = _toolsmenu;
 			TilesWindow = _tilepicker;
@@ -103,16 +109,23 @@ namespace FFRMapEditorMono
 			MapObjectsWindow = _mapobjectpicker;
 			TemplateWindow = _templatepicker;
 			InfoWindow = _infowindow;
-			ExitWarningWindow = _exitwindow;
-			SaveWarningWindow = _saveWarningWindow;
 
 			showDomainOverlay = false;
 			showDockOverlay = false;
 			showMapObjectsOverlay = true;
-			
+		}
+		public void RegisterWarningWindows(List<WarningWindow> _windows)
+		{
+			warningWindows = _windows;
 		}
 		public bool CanInteractWithMap(Vector2 mousecursor)
 		{
+			bool cursorinwindow = false;
+			foreach (var window in warningWindows)
+			{
+				cursorinwindow |= window.MouseHovering(mousecursor);
+			}
+
 			bool inTools = ToolsWindow.MouseHovering(mousecursor);
 			bool inTiles = TilesWindow.MouseHovering(mousecursor);
 			bool inDomains = DomainsWindow.MouseHovering(mousecursor);
@@ -121,10 +134,8 @@ namespace FFRMapEditorMono
 			bool inBrushes = BrushWindow.MouseHovering(mousecursor);
 			bool inInfoWindow = InfoWindow.MouseHovering(mousecursor);
 			bool inTemplates = TemplateWindow.MouseHovering(mousecursor);
-			bool inExitWarning = ExitWarningWindow.MouseHovering(mousecursor);
-			bool inSaveWarning = SaveWarningWindow.MouseHovering(mousecursor);
 
-			return (!inTools && !inTiles && !inDomains && !inDocks && !inMapObjects && !inBrushes && !inInfoWindow && !inTemplates && !inExitWarning && !inSaveWarning);
+			return (!inTools && !inTiles && !inDomains && !inDocks && !inMapObjects && !inBrushes && !inInfoWindow && !inTemplates && !cursorinwindow);
 		}
 		private void HideAllWindows()
 		{
@@ -270,7 +281,7 @@ namespace FFRMapEditorMono
 						tasks.Remove(task);
 					}
 				}
-				else if (task.Type == EditorTasks.ExitWarningClose)
+				else if (closeTaskToWarning.ContainsKey(task.Type))
 				{
 					if (task.Value > 0)
 					{
@@ -279,36 +290,33 @@ namespace FFRMapEditorMono
 					}
 					else
 					{
-						ExitWarningWindow.Show = false;
+						warningWindows.Find(w => w.Type == closeTaskToWarning[task.Type]).Show = false;
 						tasks.Remove(task);
 					}
 				}
-				else if (task.Type == EditorTasks.ExitWarningOpen)
+				else if (openTaskToWarning.ContainsKey(task.Type))
 				{
 					HideAllWindows();
-					ExitWarningWindow.Show = true;
-					tasks.Remove(task);
-				}
-				else if (task.Type == EditorTasks.SaveWarningClose)
-				{
-					if (task.Value > 0)
-					{
-						tasks.Add(new EditorTask() { Type = task.Type, Value = task.Value - 1 });
-						tasks.Remove(task);
-					}
-					else
-					{
-						SaveWarningWindow.Show = false;
-						tasks.Remove(task);
-					}
-				}
-				else if (task.Type == EditorTasks.SaveWarningOpen)
-				{
-					HideAllWindows();
-					SaveWarningWindow.Show = true;
+					warningWindows.Find(w => w.Type == openTaskToWarning[task.Type]).Show = true;
 					tasks.Remove(task);
 				}
 			}
 		}
+		Dictionary<EditorTasks, WarningType> openTaskToWarning = new()
+		{
+			{ EditorTasks.ExitWarningOpen, WarningType.Exit },
+			{ EditorTasks.SaveWarningOpen, WarningType.SaveValidation },
+			{ EditorTasks.LoadMapWarningOpen, WarningType.LoadMap },
+			{ EditorTasks.NewMapWarningOpen, WarningType.NewMap },
+		};
+		Dictionary<EditorTasks, WarningType> closeTaskToWarning = new()
+		{
+			{ EditorTasks.ExitWarningClose, WarningType.Exit },
+			{ EditorTasks.SaveWarningClose, WarningType.SaveValidation },
+			{ EditorTasks.LoadMapWarningClose, WarningType.LoadMap },
+			{ EditorTasks.NewMapWarningClose, WarningType.NewMap },
+
+		};
+
 	}
 }

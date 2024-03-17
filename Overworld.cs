@@ -147,13 +147,20 @@ namespace FFRMapEditorMono
 			{
 				if (task.Type == EditorTasks.OverworldLoadMap)
 				{
+					mapObjects = new();
 					LoadData(mapdata);
 					tasks.Remove(task);
 				}
 				else if (task.Type == EditorTasks.OverworldBlueMap)
 				{
+					mapObjects = new();
+					docks = new();
 					BlueMap();
+					UpdatePlacedMapObjects = true;
+					UpdatePlacedDocks = true;
+					UpdatePlacedRequiredTiles = true;
 					tasks.Remove(task);
+
 				}
 			}
 		}

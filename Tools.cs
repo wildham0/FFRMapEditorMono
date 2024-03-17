@@ -190,8 +190,8 @@ namespace FFRMapEditorMono
 		}
 		private List<(string, List<EditorTask>, List<EditorTask>)> toolsTasks = new()
 		{
-			("New Map", new() { new EditorTask() { Type = EditorTasks.FileCreateNewMap } }, new() { new EditorTask() { Type = EditorTasks.None } }),
-			("Load Map", new() { new EditorTask() { Type = EditorTasks.FileLoadMap } }, new() { new EditorTask() { Type = EditorTasks.None } }),
+			("New Map", new() { new EditorTask() { Type = EditorTasks.FileCreateNewMap, Value = (int)WarningSetting.Trigger } }, new() { new EditorTask() { Type = EditorTasks.None } }),
+			("Load Map", new() { new EditorTask() { Type = EditorTasks.FileLoadMap, Value = (int)WarningSetting.Trigger } }, new() { new EditorTask() { Type = EditorTasks.None } }),
 			("Save Map", new() { new EditorTask() { Type = EditorTasks.FileSaveMap, Value = (int)SavingMode.Save } }, new() { new EditorTask() { Type = EditorTasks.None } }),
 			("Save Map As", new() { new EditorTask() { Type = EditorTasks.FileSaveMap, Value = (int)SavingMode.SaveAs } }, new() { new EditorTask() { Type = EditorTasks.None } }),
 			("Pencil", new() { new EditorTask() { Type = EditorTasks.TilesSetTool }, new EditorTask() { Type = EditorTasks.WindowsClose } }, new() { new EditorTask() { Type = EditorTasks.TilesToggle }, new EditorTask() { Type = EditorTasks.TilesSetTool } }),

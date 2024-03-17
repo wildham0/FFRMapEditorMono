@@ -20,6 +20,11 @@ namespace FFRMapEditorMono
 		Save = 0,
 		SaveAs
 	}
+	public enum WarningSetting
+	{
+		Trigger = 0,
+		Disabled
+	}
 	public struct Setting
 	{ 
 		public string Name { get; set; }
@@ -81,20 +86,37 @@ namespace FFRMapEditorMono
 			{
 				if (task.Type == EditorTasks.FileCreateNewMap)
 				{
-					OverworldData = new();
-					LoadedMapName = "";
-					LoadedMapPath = "";
-					tasks.Remove(task);
-					tasks.Add(new EditorTask() { Type = EditorTasks.OverworldBlueMap });
+					if (task.Value == (int)WarningSetting.Trigger && overworld.UnsavedChanges)
+					{
+						tasks.Add(new EditorTask() { Type = EditorTasks.NewMapWarningOpen });
+						tasks.Remove(task);
+					}
+					else
+					{
+						OverworldData = new();
+						LoadedMapName = "";
+						LoadedMapPath = "";
+						tasks.Remove(task);
+						tasks.Add(new EditorTask() { Type = EditorTasks.OverworldBlueMap });
+
+					}
 				}
 				else if (task.Type == EditorTasks.FileLoadMap)
 				{
-					bool fileLoaded = OpenFile();
-					if (fileLoaded)
+					if (task.Value == (int)WarningSetting.Trigger && overworld.UnsavedChanges)
 					{
-						tasks.Add(new EditorTask() { Type = EditorTasks.OverworldLoadMap });
+						tasks.Add(new EditorTask() { Type = EditorTasks.LoadMapWarningOpen });
+						tasks.Remove(task);
 					}
-					tasks.Remove(task);
+					else
+					{ 
+						bool fileLoaded = OpenFile();
+						if (fileLoaded)
+						{
+							tasks.Add(new EditorTask() { Type = EditorTasks.OverworldLoadMap });
+						}
+						tasks.Remove(task);
+					}
 				}
 				else if (task.Type == EditorTasks.FileSaveMap)
 				{

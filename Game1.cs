@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 
 
@@ -22,8 +23,9 @@ namespace FFRMapEditorMono
 		private TemplatePicker templatesPicker;
 		private ToolsMenu toolsMenu;
 		private InfoWindow infoWindow;
-		private ExitWarningWindow exitWarning;
-		private SaveWarningWindow saveWarning;
+
+		private List<WarningWindow> warningWindows;
+
 		private Point windowSize = new(1200, 800);
 		private SpriteFont font;
 		private FileManager fileManager;
@@ -96,14 +98,22 @@ namespace FFRMapEditorMono
 			brushPicker = new(brushesTexture, selectors16, font);
 			templatesPicker = new(templatesIcons, selectors32, font);
 			infoWindow = new(infowindowtexture, font, buttonTexture, windowSize);
-			exitWarning = new(infowindowtexture, font, buttonTexture, windowSize);
-			saveWarning = new(infowindowtexture, font, buttonTexture, windowSize);
 			mapObjectsPicker = new(mapobjectsIcons, selectors16, placingIcons, font);
 			currentTool = new();
 			tilePicker = new(tileSetTexture, selectors16, placingIcons, font);
 
+			// Warning Windows
+			warningWindows = new()
+			{
+				new ExitWarningWindow(infowindowtexture, font, buttonTexture, windowSize),
+				new SaveWarningWindow(infowindowtexture, font, buttonTexture, windowSize),
+				new NewMapWarningWindow(infowindowtexture, font, buttonTexture, windowSize),
+				new LoadMapWarningWindow(infowindowtexture, font, buttonTexture, windowSize)
+			};
+
 			// Create Windows manager
-			windowsManager = new(toolsMenu, tilePicker, brushPicker, domainsPicker, docksPicker, mapObjectsPicker, templatesPicker, infoWindow, exitWarning, saveWarning);
+			windowsManager = new(toolsMenu, tilePicker, brushPicker, domainsPicker, docksPicker, mapObjectsPicker, templatesPicker, infoWindow);
+			windowsManager.RegisterWarningWindows(warningWindows);
 
 		}
 		protected override void Update(GameTime gameTime)
@@ -152,8 +162,11 @@ namespace FFRMapEditorMono
 			editorTasks.AddRange(brushPicker.PickOption(mouse));
 			editorTasks.AddRange(templatesPicker.PickOption(mouse));
 			editorTasks.AddRange(infoWindow.ProcessInput(mouse));
-			editorTasks.AddRange(exitWarning.ProcessInput(mouse));
-			editorTasks.AddRange(saveWarning.ProcessInput(mouse));
+
+			foreach (var warning in warningWindows)
+			{
+				editorTasks.AddRange(warning.ProcessInput(mouse));
+			}
 
 			// Update Selected Tool
 			currentTool.Update(editorTasks);
@@ -182,7 +195,8 @@ namespace FFRMapEditorMono
 			windowsManager.ProcessTasks(editorTasks, overworld);
 
 			// Update File management
-			saveWarning.ProcessTasks(overworld, unplacedTiles, windowSize, editorTasks);
+			warningWindows.OfType<SaveWarningWindow>().First().ProcessTasks(overworld, unplacedTiles, windowSize, editorTasks);
+
 			fileManager.ProcessTasks(overworld, unplacedTiles, editorTasks);
 			overworld.ProcessTasks(fileManager.OverworldData, editorTasks);
 
@@ -232,8 +246,11 @@ namespace FFRMapEditorMono
 			templatesPicker.Draw(_spriteBatch, font, mouse.Position);
 			toolsMenu.Draw(_spriteBatch, font, mouse.Position);
 			infoWindow.Draw(_spriteBatch);
-			exitWarning.Draw(_spriteBatch);
-			saveWarning.Draw(_spriteBatch);
+
+			foreach (var warning in warningWindows)
+			{
+				warning.Draw(_spriteBatch);
+			}
 
 			base.Draw(gameTime);
 		}

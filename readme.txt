@@ -1,6 +1,10 @@
-FFR Map Editor v1.0
+FFR Map Editor v1.01
 
-*** Credits ***
+Credits ........... [S01]
+Version Changes ... [S02]
+Controls .......... [S03]
+
+*** Credits *** [S01]
 Main Developer
   wildham
 
@@ -14,7 +18,12 @@ Based on the work of
 Source code at
   https://github.com/wildham0/FFRMapEditorMono
 
-*** Controls ***
+*** Version Change *** [S02]
+1.1: - Added safeguards to New Map and Load Map functions.
+     - New Map now clear Map Objects.
+1.0: - Initial Release
+
+*** Controls *** [S03]
 Main Map:
  Left-click: Use selected tool
  Right-click: Select current tile
