@@ -35,6 +35,8 @@ namespace FFRMapEditorMono
 		private WindowsManager windowsManager;
 		private bool LastActiveState = true;
 		private List<string> unplacedTiles;
+		private int suspendKeyboard = 0;
+		private int timeToBackup;
 		public Game1()
 		{
 			_graphics = new GraphicsDeviceManager(this);
@@ -61,6 +63,7 @@ namespace FFRMapEditorMono
 			fileManager = new FileManager();
 			fileManager.LoadSettings();
 			windowSize = fileManager.Settings.GetResolution();
+			timeToBackup = fileManager.Settings.GetBackupDelay();
 			_graphics.PreferredBackBufferWidth = windowSize.X;
 			_graphics.PreferredBackBufferHeight = windowSize.Y;
 			_graphics.ApplyChanges();
@@ -89,7 +92,7 @@ namespace FFRMapEditorMono
 			font = Content.Load<SpriteFont>("File");
 
 			// Create overworld
-			overworld = new(tileSetTexture, font, domainGroupsIcons, docksIcons, mapobjectsIcons, GraphicsDevice, _spriteBatch);
+			overworld = new(tileSetTexture, font, domainGroupsIcons, docksIcons, mapobjectsIcons, GraphicsDevice, _spriteBatch, fileManager.Settings.GetUndoDepth());
 
 			// Create menus
 			toolsMenu = new(toolsTexture, selectors32, font);
@@ -118,6 +121,21 @@ namespace FFRMapEditorMono
 		}
 		protected override void Update(GameTime gameTime)
 		{
+			if (editorTasks.Contains(new EditorTask() { Type = EditorTasks.ResetBackupCounter }))
+			{
+				editorTasks.RemoveAll(t => t.Type == EditorTasks.ResetBackupCounter);
+				timeToBackup = fileManager.Settings.GetBackupDelay();
+			}
+			else if (timeToBackup > 0)
+			{
+				timeToBackup--;
+			}
+			else
+			{
+				editorTasks.Add(new EditorTask() { Type = EditorTasks.SaveBackupMap });
+				timeToBackup = fileManager.Settings.GetBackupDelay();
+			}
+			
 			if (Keyboard.GetState().IsKeyDown(Keys.Escape) || editorTasks.Contains(new EditorTask() { Type = EditorTasks.ExitProgram }))
 			{
 				if (overworld.UnsavedChanges)
@@ -146,6 +164,25 @@ namespace FFRMapEditorMono
 			{
 				infoWindow.UpdatePosition(windowSize);
 			}
+
+			if (suspendKeyboard > 0)
+			{
+				suspendKeyboard--;
+			}
+			else if(Keyboard.GetState().IsKeyDown(Keys.LeftControl) && Keyboard.GetState().IsKeyDown(Keys.Z))
+			{
+				if (Keyboard.GetState().IsKeyDown(Keys.LeftShift))
+				{
+					overworld.Redo();
+					suspendKeyboard = 20;
+				}
+				else
+				{
+					overworld.Undo();
+					suspendKeyboard = 20;
+				}
+			}
+
 
 			// Remove None tasks
 			editorTasks.RemoveAll(t => t.Type == EditorTasks.None);

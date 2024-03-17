@@ -55,7 +55,7 @@ namespace FFRMapEditorMono
 		private Texture2D docksIcons;
 		private Texture2D mapObjectsIcons;
 		private RenderTarget2D mapTexture;
-		private byte[] overworldMap;
+		private byte[] overworldMap { get => targetMaps[owMapCurrentTarget]; }
 		private List<(int id, OwEncounterGroup group)> domains;
 		private List<(OverworldTeleportIndex location, SCCoords coord)> docks;
 		private List<(MapObject mapobject, SCCoords coord)> mapObjects;
@@ -65,20 +65,32 @@ namespace FFRMapEditorMono
 		private GraphicsDevice graphicsDevice;
 		private SpriteBatch spriteBatch;
 		private List<SmartBrush> smartBrushes;
+		private int owMapCurrentTarget;
+		private int owMapBackSteps;
+		private int owMapForwardSteps;
+		private int owMapUndoDepth;
+		private bool currentlyDrawing;
+		private List<byte[]> targetMaps;
+		private List<List<(int id, OwEncounterGroup group)>> targetDomains;
 
 		public bool UpdatePlacedMapObjects { get; set; }
 		public bool UpdatePlacedDocks { get; set; }
 		public bool UpdatePlacedRequiredTiles { get; set; }
 		public bool UnsavedChanges { get; set; }
-		public Overworld(Texture2D _tileset, SpriteFont _font, Texture2D _domaingroups, Texture2D _docks, Texture2D _mapobjects, GraphicsDevice _graphicsDevice, SpriteBatch _spriteBatch)
+		public Overworld(Texture2D _tileset, SpriteFont _font, Texture2D _domaingroups, Texture2D _docks, Texture2D _mapobjects, GraphicsDevice _graphicsDevice, SpriteBatch _spriteBatch, int _undodepth)
 		{
 			graphicsDevice = _graphicsDevice;
 			spriteBatch = _spriteBatch;
 			tileSet = _tileset;
-			overworldMap = new byte[256 * 256];
+			owMapCurrentTarget = 0;
+			owMapBackSteps = 0;
+			owMapForwardSteps = 0;
+			currentlyDrawing = false;
 			domainGroupIcons = _domaingroups;
 			docksIcons = _docks;
 			mapObjectsIcons = _mapobjects;
+			owMapUndoDepth = _undodepth;
+			targetMaps = Enumerable.Range(0, owMapUndoDepth + 1).Select(i => new byte[256 * 256]).ToList();
 			docks = new();
 			mapObjects = new();
 			mapTexture = new(graphicsDevice, 4096, 4096, true, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
@@ -93,6 +105,57 @@ namespace FFRMapEditorMono
 			UpdatePlacedDocks = true;
 			UpdatePlacedRequiredTiles = true;
 			UnsavedChanges = false;
+		}
+		private void CreateBackup()
+		{
+			int nextTarget = owMapCurrentTarget < owMapUndoDepth ? owMapCurrentTarget + 1 : 0;
+			if (owMapBackSteps < owMapUndoDepth)
+			{
+				owMapBackSteps++;
+			}
+
+			owMapForwardSteps = 0;
+			targetMaps[owMapCurrentTarget].CopyTo(targetMaps[nextTarget], 0);
+			owMapCurrentTarget = nextTarget;
+		}
+		public void Undo()
+		{
+			if (owMapBackSteps == 0)
+			{
+				return;
+			}
+
+			int previousTarget = owMapCurrentTarget > 0 ? owMapCurrentTarget - 1 : owMapUndoDepth;
+			owMapBackSteps--;
+			if (owMapForwardSteps < owMapUndoDepth)
+			{
+				owMapForwardSteps++;
+			}
+
+			owMapCurrentTarget = previousTarget;
+			GenerateInitialMap();
+			UpdatePlacedMapObjects = true;
+			UpdatePlacedDocks = true;
+			UpdatePlacedRequiredTiles = true;
+		}
+		public void Redo()
+		{
+			if (owMapForwardSteps == 0)
+			{
+				return;
+			}
+			owMapForwardSteps--;
+			if (owMapBackSteps < owMapUndoDepth)
+			{
+				owMapBackSteps++;
+			}
+
+			int nextTarget = owMapCurrentTarget < owMapUndoDepth ? owMapCurrentTarget + 1 : 0;
+			owMapCurrentTarget = nextTarget;
+			GenerateInitialMap();
+			UpdatePlacedMapObjects = true;
+			UpdatePlacedDocks = true;
+			UpdatePlacedRequiredTiles = true;
 		}
 		private void DefineSmarthBrushes()
 		{
@@ -110,7 +173,7 @@ namespace FFRMapEditorMono
 		}
 		public void LoadData(OwMapExchangeData mapdata)
 		{
-			overworldMap = mapdata.DecodeMap();
+			mapdata.DecodeMap().CopyTo(overworldMap, 0);
 			domains = mapdata.DomainUpdates.Select(d => ((int)d.To, OwDataGroup.OwDomainsGroup[d.From])).ToList();
 			for (int i = 0; i < 64; i++)
 			{
@@ -139,9 +202,7 @@ namespace FFRMapEditorMono
 		}
 		public void ProcessTasks(OwMapExchangeData mapdata, List<EditorTask> tasks)
 		{
-			List<EditorTasks> managedTasks = new() { EditorTasks.OverworldLoadMap, EditorTasks.OverworldBlueMap };
-
-			var validtask = tasks.Where(t => managedTasks.Contains(t.Type)).ToList();
+			var validtask = tasks.ToList();
 
 			foreach (var task in validtask)
 			{
@@ -160,7 +221,16 @@ namespace FFRMapEditorMono
 					UpdatePlacedDocks = true;
 					UpdatePlacedRequiredTiles = true;
 					tasks.Remove(task);
-
+				}
+				else if (task.Type == EditorTasks.PaintingUndo)
+				{
+					Undo();
+					tasks.Remove(task);
+				}
+				else if (task.Type == EditorTasks.PaintingRedo)
+				{
+					Redo();
+					tasks.Remove(task);
 				}
 			}
 		}
@@ -284,6 +354,11 @@ namespace FFRMapEditorMono
 		{
 			if ((!mouse.LeftDown && !mouse.LeftClick) || ((tool.Tool != ToolAction.Pencil && tool.Tool != ToolAction.Brush)))
 			{
+				if (!mouse.LeftDown && currentlyDrawing && (tool.Tool == ToolAction.Pencil || tool.Tool == ToolAction.Brush))
+				{
+					currentlyDrawing = false;
+				}
+				
 				return;
 			}
 
@@ -298,6 +373,12 @@ namespace FFRMapEditorMono
 			if (middlex >= 256 || middley >= 256 || middlex < 0 || middley < 0)
 			{
 				return;
+			}
+
+			if (currentlyDrawing == false)
+			{
+				CreateBackup();
+				currentlyDrawing = true;
 			}
 
 			int minsize = 0;
@@ -346,6 +427,11 @@ namespace FFRMapEditorMono
 		{
 			if ((!mouse.LeftDown && !mouse.LeftClick) || ((tool.Tool != ToolAction.Templates)))
 			{
+				if (!mouse.LeftDown && currentlyDrawing && tool.Tool == ToolAction.Templates)
+				{
+					currentlyDrawing = false;
+				}
+
 				return;
 			}
 
@@ -360,6 +446,12 @@ namespace FFRMapEditorMono
 			if (middlex >= 256 || middley >= 256 || middlex < 0 || middley < 0)
 			{
 				return;
+			}
+
+			if (currentlyDrawing == false)
+			{
+				CreateBackup();
+				currentlyDrawing = true;
 			}
 
 			int sizex = tool.Template.GetLength(1);

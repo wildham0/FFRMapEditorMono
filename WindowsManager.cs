@@ -71,6 +71,12 @@ namespace FFRMapEditorMono
 		LoadMapWarningOpen,
 		LoadMapWarningClose,
 
+		PaintingUndo,
+		PaintingRedo,
+
+		SaveBackupMap,
+		ResetBackupCounter,
+
 		ExitProgramHard,
 		ExitProgram
 

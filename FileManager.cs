@@ -33,6 +33,9 @@ namespace FFRMapEditorMono
 	public class SettingsManager
 	{
 		public List<Setting> Settings { get; set; }
+		private int defaultUndoDepth = 4;
+		private Point defaultResolution = new Point(1200, 800);
+		private int defaultDelayForBackup = 5;
 		public SettingsManager()
 		{
 			Settings = new();
@@ -59,6 +62,42 @@ namespace FFRMapEditorMono
 
 			Settings.Add(new Setting() { Name = "Resolution X", Value = resolution.X });
 			Settings.Add(new Setting() { Name = "Resolution Y", Value = resolution.Y });
+		}
+		public int GetUndoDepth()
+		{
+			var depth = Settings.Where(s => s.Name == "Undo Depth").ToList();
+			if (depth.Any())
+			{
+				return depth.First().Value;
+			}
+			else
+			{
+				SetUndoDepth(defaultUndoDepth);
+				return defaultUndoDepth;
+			}
+		}
+		public void SetUndoDepth(int depth)
+		{
+			Settings.RemoveAll(s => s.Name == "Undo Depth");
+			Settings.Add(new Setting() { Name = "Undo Depth", Value = depth });
+		}
+		public int GetBackupDelay()
+		{
+			var minutes = Settings.Where(s => s.Name == "Backup Delay").ToList();
+			if (minutes.Any())
+			{
+				return minutes.First().Value * 60 * 60;
+			}
+			else
+			{
+				SetBackupDelay(defaultUndoDepth);
+				return defaultUndoDepth * 60 * 60;
+			}
+		}
+		public void SetBackupDelay(int minutes)
+		{
+			Settings.RemoveAll(s => s.Name == "Backup Delay");
+			Settings.Add(new Setting() { Name = "Backup Delay", Value = minutes });
 		}
 	}
 	
@@ -98,7 +137,7 @@ namespace FFRMapEditorMono
 						LoadedMapPath = "";
 						tasks.Remove(task);
 						tasks.Add(new EditorTask() { Type = EditorTasks.OverworldBlueMap });
-
+						tasks.Add(new EditorTask() { Type = EditorTasks.ResetBackupCounter });
 					}
 				}
 				else if (task.Type == EditorTasks.FileLoadMap)
@@ -109,11 +148,12 @@ namespace FFRMapEditorMono
 						tasks.Remove(task);
 					}
 					else
-					{ 
+					{
 						bool fileLoaded = OpenFile();
 						if (fileLoaded)
 						{
 							tasks.Add(new EditorTask() { Type = EditorTasks.OverworldLoadMap });
+							tasks.Add(new EditorTask() { Type = EditorTasks.ResetBackupCounter });
 						}
 						tasks.Remove(task);
 					}
@@ -151,6 +191,12 @@ namespace FFRMapEditorMono
 				{
 					OverworldData.EncodeMap(overworld);
 					filesaved = SaveFileAs();
+					tasks.Remove(task);
+				}
+				else if (task.Type == EditorTasks.SaveBackupMap)
+				{
+					OverworldData.EncodeMap(overworld);
+					SaveBackup();
 					tasks.Remove(task);
 				}
 			}
@@ -268,6 +314,14 @@ namespace FFRMapEditorMono
 				using var stream = new StreamWriter(LoadedMapPath + "\\" + LoadedMapName);
 					stream.Write(serializedOwData);
 			}
+
+			return true;
+		}
+		public bool SaveBackup()
+		{
+			string serializedOwData = JsonSerializer.Serialize<OwMapExchangeData>(OverworldData, new JsonSerializerOptions { WriteIndented = true });
+			using var stream = new StreamWriter("backupowmap.json");
+			stream.Write(serializedOwData);
 
 			return true;
 		}

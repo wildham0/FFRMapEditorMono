@@ -200,6 +200,8 @@ namespace FFRMapEditorMono
 			("Domains", new() { new EditorTask() { Type = EditorTasks.DomainsOpen }, new EditorTask() { Type = EditorTasks.DomainsSetTool } }, new() { new EditorTask() { Type = EditorTasks.None } }),
 			("Docks", new() { new EditorTask() { Type = EditorTasks.DocksOpen }, new EditorTask() { Type = EditorTasks.DocksSetTool } }, new() { new EditorTask() { Type = EditorTasks.None } }),
 			("MapObjects", new() { new EditorTask() { Type = EditorTasks.MapObjectsOpen }, new EditorTask() { Type = EditorTasks.MapObjectsSetTool } }, new() { new EditorTask() { Type = EditorTasks.None } }),
+			("Undo", new() { new EditorTask() { Type = EditorTasks.PaintingUndo } }, new() ),
+			("Redo", new() { new EditorTask() { Type = EditorTasks.PaintingRedo } }, new() ),
 			("", new(), new() ),
 			("", new(), new() ),
 			("Exit", new() { new EditorTask() { Type = EditorTasks.ExitProgram } }, new() { new EditorTask() { Type = EditorTasks.None } }),

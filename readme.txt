@@ -1,8 +1,9 @@
-FFR Map Editor v1.01
+FFR Map Editor v1.02
 
 Credits ........... [S01]
 Version Changes ... [S02]
 Controls .......... [S03]
+Settings .......... [S04]
 
 *** Credits *** [S01]
 Main Developer
@@ -19,9 +20,11 @@ Source code at
   https://github.com/wildham0/FFRMapEditorMono
 
 *** Version Change *** [S02]
-1.1: - Added safeguards to New Map and Load Map functions.
-     - New Map now clear Map Objects.
-1.0: - Initial Release
+1.02: - Added Undo/Redo options for paiting actions on the map.
+      - Added automatic backup ("backupowmap.json" in root folder)
+1.01: - Added safeguards to New Map and Load Map functions.
+      - New Map now clear Map Objects.
+1.00: - Initial Release
 
 *** Controls *** [S03]
 Main Map:
@@ -71,10 +74,24 @@ Map Objects Overlay:
   Arrow Down: The object is placed.
  On Map: Set selected object at location.
 
+Undo:
+ Cancel the previous painting action on the map.
+ Keyboard shortcut: LCTRL+Z
+
+Redo:
+ If undo was used, go forward to current actions.
+ Keyboard shortcut: LSHIFT+LCTRL+Z
+
 Exit:
  Exit Program
 
 Info:
  Show credits, version, urls.
  
+ *** Settings *** [S04]
+ These settings can be modified in the settings.json file in the root folder. If the file isn't there, running and quitting the map editor will create it.
+
+ Resolution X/Y: Default window size.
+ Undo Depth: How many actions back that can be undone. Default is 4, higher count means higher memory usage.
+ Backup Delay: How often the backup map is saved. Default is 5 minutes.
 
