@@ -35,7 +35,7 @@ namespace FFRMapEditorMono
 			SetOptionTextLength();
 			showPlaced = false;
 		}
-		public void ProcessTasks(List<EditorTask> tasks)
+		public override void ProcessTasks(List<EditorTask> tasks)
 		{
 			var validtasks = tasks.ToList();
 
@@ -76,12 +76,14 @@ namespace FFRMapEditorMono
 	}
 	public class TilePicker : OptionPicker
 	{
-		public TilePicker(Texture2D _window, Texture2D _selector, Texture2D _placedicons, SpriteFont _font)
+		private Overworld overworld;
+		public TilePicker(Texture2D _window, Texture2D _selector, Texture2D _placedicons, SpriteFont _font, Overworld _overworld)
 		{
 			optionsWindow = _window;
 			optionSelector = _selector;
 			optionIcons = _placedicons;
 			optionFont = _font;
+			overworld = _overworld;
 
 			Show = false;
 			Position = new Vector2(64, 0);
@@ -100,9 +102,11 @@ namespace FFRMapEditorMono
 
 			SetOptionTextLength();
 			lastSelection = 0x00;
+			placedOptions = new();
+			unplacedOptions = requiredTiles.Select(t => (int)t).ToList();
 			showPlaced = true;
 		}
-		public void ProcessTasks(List<EditorTask> tasks)
+		public override void ProcessTasks(List<EditorTask> tasks)
 		{
 			var validtasks = tasks.ToList();
 
@@ -111,6 +115,12 @@ namespace FFRMapEditorMono
 				if (task.Type == EditorTasks.TilesPickerUpdate)
 				{
 					lastSelection = task.Value;
+					tasks.Remove(task);
+				}
+				else if (task.Type == EditorTasks.UpdatePlacedTilesOverlay)
+				{
+					placedOptions = overworld.GetOwBytes().ToList().Intersect(requiredTiles).Select(t => (int)t).ToList();
+					unplacedOptions = requiredTiles.Select(t => (int)t).Except(placedOptions).ToList();
 					tasks.Remove(task);
 				}
 			}
@@ -160,17 +170,8 @@ namespace FFRMapEditorMono
 			0x6D,
 			0x6E
 		};
-		public List<string> UpdatePlaced(Overworld overworld)
+		public List<string> GetUnplacedTiles()
 		{
-			if (!overworld.UpdatePlacedRequiredTiles)
-			{
-				return unplacedOptions.Select(t => TileNames[t]).ToList();
-			}
-
-			placedOptions = overworld.GetOwBytes().ToList().Intersect(requiredTiles).Select(t => (int)t).ToList();
-			unplacedOptions = requiredTiles.Select(t => (int)t).Except(placedOptions).ToList();
-			overworld.UpdatePlacedRequiredTiles = false;
-
 			return unplacedOptions.Select(t => TileNames[t]).ToList();
 		}
 		private List<string> TileNames = new()

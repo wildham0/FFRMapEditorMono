@@ -232,7 +232,40 @@ namespace FFRMapEditorMono
 					Redo();
 					tasks.Remove(task);
 				}
+				else if (task.Type == EditorTasks.DocksRemove)
+				{
+					int dockToRemove = (task.Value == (int)OverworldTeleportIndex.DefaultLocation) ? (int)OverworldTeleportIndex.None : task.Value;
+
+					docks.RemoveAll(d => d.location == (OverworldTeleportIndex)dockToRemove);
+					UpdatePlacedDocks = true;
+					tasks.Remove(task);
+				}
+				else if (task.Type == EditorTasks.MapObjectsRemove)
+				{
+					mapObjects.RemoveAll(o => o.mapobject == (MapObject)task.Value);
+					UpdatePlacedMapObjects = true;
+					tasks.Remove(task);
+				}
 			}
+
+			if (UpdatePlacedMapObjects)
+			{
+				tasks.Add(new EditorTask() { Type = EditorTasks.UpdatePlacedObjectsOverlay });
+				UpdatePlacedMapObjects = false;
+			}
+
+			if (UpdatePlacedDocks)
+			{
+				tasks.Add(new EditorTask() { Type = EditorTasks.UpdatePlacedDocksOverlay });
+				UpdatePlacedDocks = false;
+			}
+
+			if (UpdatePlacedRequiredTiles)
+			{
+				tasks.Add(new EditorTask() { Type = EditorTasks.UpdatePlacedTilesOverlay });
+				UpdatePlacedRequiredTiles = false;
+			}
+
 		}
 
 		public byte[] GetOwBytes()

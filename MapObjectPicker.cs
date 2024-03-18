@@ -10,12 +10,15 @@ namespace FFRMapEditorMono
 {
 	public class MapObjectPicker : OptionPicker
 	{
-		public MapObjectPicker(Texture2D _window, Texture2D _selector, Texture2D _placingicons, SpriteFont _font)
+		private Overworld overworld;
+		public MapObjectPicker(Texture2D _window, Texture2D _selector, Texture2D _placingicons, SpriteFont _font, Overworld _overworld)
 		{
 			optionsWindow = _window;
 			optionSelector = _selector;
 			optionIcons = _placingicons;
 			optionFont = _font;
+
+			overworld = _overworld;
 
 			Position = new Vector2(64, 0);
 			zoom = 2.0f;
@@ -25,10 +28,9 @@ namespace FFRMapEditorMono
 
 			options = mapObjectsNames.Select((o, i) => (o.Item1,
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.MapObjectsUpdate, Value = i },
-					new EditorTask() { Type = EditorTasks.WindowsClose, Value = 10 } },
+					new EditorTask() { Type = EditorTasks.MapObjectsUpdate, Value = i } },
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.MapObjectsUpdate, Value = i } }
+					new EditorTask() { Type = EditorTasks.MapObjectsRemove, Value = i } }
 				)).ToList();
 
 			Show = false;
@@ -48,15 +50,18 @@ namespace FFRMapEditorMono
 			("Ship (Unused)", EditorTasks.None, EditorTasks.None),
 			("Airship", EditorTasks.None, EditorTasks.None),
 		};
-		public void UpdatePlaced(Overworld overworld)
+		public override void ProcessTasks(List<EditorTask> tasks)
 		{
-			if (!overworld.UpdatePlacedMapObjects)
+			var validtasks = tasks.ToList();
+
+			foreach (var task in validtasks)
 			{
-				return;
+				if (task.Type == EditorTasks.UpdatePlacedObjectsOverlay)
+				{
+					placedOptions = overworld.GetPlacedMapObjects().Select(o => (int)o).ToList();
+					tasks.Remove(task);
+				}
 			}
-			
-			placedOptions = overworld.GetPlacedMapObjects().Select(o => (int)o).ToList();
-			overworld.UpdatePlacedMapObjects = false;
 		}
 	}
 }

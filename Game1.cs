@@ -15,16 +15,11 @@ namespace FFRMapEditorMono
 		private GraphicsDeviceManager _graphics;
 		private SpriteBatch _spriteBatch;
 		private Overworld overworld;
-		private TilePicker tilePicker;
-		private BrushPicker brushPicker;
-		private DomainPicker domainsPicker;
-		private DockPicker docksPicker;
-		private MapObjectPicker mapObjectsPicker;
-		private TemplatePicker templatesPicker;
 		private ToolsMenu toolsMenu;
 		private InfoWindow infoWindow;
 
 		private List<WarningWindow> warningWindows;
+		private List<OptionPicker> optionPickers;
 
 		private Point windowSize = new(1200, 800);
 		private SpriteFont font;
@@ -33,6 +28,7 @@ namespace FFRMapEditorMono
 		private MouseState mouse;
 		private List<EditorTask> editorTasks;
 		private WindowsManager windowsManager;
+		
 		private bool LastActiveState = true;
 		private List<string> unplacedTiles;
 		private int suspendKeyboard = 0;
@@ -96,14 +92,18 @@ namespace FFRMapEditorMono
 
 			// Create menus
 			toolsMenu = new(toolsTexture, selectors32, font);
-			domainsPicker = new(domainGroupsIcons, selectors32, font);
-			docksPicker = new(docksIcons, selectors32, placingIcons, font);
-			brushPicker = new(brushesTexture, selectors16, font);
-			templatesPicker = new(templatesIcons, selectors32, font);
 			infoWindow = new(infowindowtexture, font, buttonTexture, windowSize);
-			mapObjectsPicker = new(mapobjectsIcons, selectors16, placingIcons, font);
 			currentTool = new();
-			tilePicker = new(tileSetTexture, selectors16, placingIcons, font);
+
+			optionPickers = new()
+			{
+				new DomainPicker(domainGroupsIcons, selectors32, font),
+				new TemplatePicker(templatesIcons, selectors32, font),
+				new DockPicker(docksIcons, selectors32, placingIcons, font, overworld),
+				new MapObjectPicker(mapobjectsIcons, selectors16, placingIcons, font, overworld),
+				new BrushPicker(brushesTexture, selectors16, font),
+				new TilePicker(tileSetTexture, selectors16, placingIcons, font, overworld)
+			};
 
 			// Warning Windows
 			warningWindows = new()
@@ -115,8 +115,9 @@ namespace FFRMapEditorMono
 			};
 
 			// Create Windows manager
-			windowsManager = new(toolsMenu, tilePicker, brushPicker, domainsPicker, docksPicker, mapObjectsPicker, templatesPicker, infoWindow);
+			windowsManager = new(toolsMenu, infoWindow);
 			windowsManager.RegisterWarningWindows(warningWindows);
+			windowsManager.RegisterOptionPickers(optionPickers);
 
 		}
 		protected override void Update(GameTime gameTime)
@@ -183,7 +184,6 @@ namespace FFRMapEditorMono
 				}
 			}
 
-
 			// Remove None tasks
 			editorTasks.RemoveAll(t => t.Type == EditorTasks.None);
 
@@ -191,14 +191,13 @@ namespace FFRMapEditorMono
 			mouse.Update();
 
 			// Select Options
-			editorTasks.AddRange(tilePicker.PickOption(mouse));
 			editorTasks.AddRange(toolsMenu.PickOption(mouse));
-			editorTasks.AddRange(domainsPicker.PickOption(mouse));
-			editorTasks.AddRange(docksPicker.PickOption(mouse));
-			editorTasks.AddRange(mapObjectsPicker.PickOption(mouse));
-			editorTasks.AddRange(brushPicker.PickOption(mouse));
-			editorTasks.AddRange(templatesPicker.PickOption(mouse));
 			editorTasks.AddRange(infoWindow.ProcessInput(mouse));
+
+			foreach (var picker in optionPickers)
+			{
+				editorTasks.AddRange(picker.PickOption(mouse));
+			}
 
 			foreach (var warning in warningWindows)
 			{
@@ -207,7 +206,7 @@ namespace FFRMapEditorMono
 
 			// Update Selected Tool
 			currentTool.Update(editorTasks);
-			currentTool.GetTemplate(editorTasks, templatesPicker.CurrentTemplate);
+			currentTool.GetTemplate(editorTasks, optionPickers.OfType<TemplatePicker>().First().CurrentTemplate);
 			toolsMenu.UpdateBrushSize(currentTool.BrushSize + 1);
 
 			// Interact with the map
@@ -218,21 +217,20 @@ namespace FFRMapEditorMono
 				overworld.UpdateDomain(mouse, currentTool);
 				overworld.UpdateDock(mouse, currentTool);
 				overworld.UpdateMapObject(mouse, currentTool);
-				mapObjectsPicker.UpdatePlaced(overworld);
-				docksPicker.UpdatePlaced(overworld);
-				unplacedTiles = tilePicker.UpdatePlaced(overworld);
 				editorTasks.AddRange(overworld.GetTile(mouse));
 			}
 
 			// Update selected tiles
-			tilePicker.ProcessTasks(editorTasks);
-			brushPicker.ProcessTasks(editorTasks);
+			foreach (var picker in optionPickers)
+			{
+				picker.ProcessTasks(editorTasks);
+			}
 
 			// Update Windows
 			windowsManager.ProcessTasks(editorTasks, overworld);
 
 			// Update File management
-			warningWindows.OfType<SaveWarningWindow>().First().ProcessTasks(overworld, unplacedTiles, windowSize, editorTasks);
+			warningWindows.OfType<SaveWarningWindow>().First().ProcessTasks(overworld, optionPickers.OfType<TilePicker>().First().GetUnplacedTiles(), windowSize, editorTasks);
 
 			fileManager.ProcessTasks(overworld, unplacedTiles, editorTasks);
 			overworld.ProcessTasks(fileManager.OverworldData, editorTasks);
@@ -273,16 +271,15 @@ namespace FFRMapEditorMono
 
 			// Draw map+overlays
 			overworld.Draw(_spriteBatch, windowsManager, currentTool, mouse);
-			
+
 			// Draw menus
-			tilePicker.Draw(_spriteBatch, font, mouse.Position);
-			brushPicker.Draw(_spriteBatch, font, mouse.Position);
-			domainsPicker.Draw(_spriteBatch, font, mouse.Position);
-			docksPicker.Draw(_spriteBatch, font, mouse.Position);
-			mapObjectsPicker.Draw(_spriteBatch, font, mouse.Position);
-			templatesPicker.Draw(_spriteBatch, font, mouse.Position);
 			toolsMenu.Draw(_spriteBatch, font, mouse.Position);
 			infoWindow.Draw(_spriteBatch);
+
+			foreach (var picker in optionPickers)
+			{
+				picker.Draw(_spriteBatch, font, mouse.Position);
+			}
 
 			foreach (var warning in warningWindows)
 			{
