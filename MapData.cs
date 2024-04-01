@@ -13,7 +13,7 @@ namespace FFRMapEditorMono
 {
 	public enum OverworldTeleportIndex : byte
 	{
-		CardiaNorth = 0,
+		Cardia1 = 0, // CardiaNorth
 		Coneria = 1,
 		Pravoka = 2,
 		Elfland = 3,
@@ -22,28 +22,28 @@ namespace FFRMapEditorMono
 		Gaia = 6,
 		Onrac = 7,
 		Lefein = 8,
-		ConeriaCastle = 9,
+		ConeriaCastle1 = 9,
 		ElflandCastle = 10,
 		NorthwestCastle = 11,
-		CastleOrdeals = 12,
-		TempleOfFiends = 13,
-		EarthCave = 14,
-		GurguVolcano = 15,
-		IceCave = 16,
-		CardiaGrass = 17,
-		BahamutCave = 18,
+		CastleOrdeals1 = 12,
+		TempleOfFiends1 = 13,
+		EarthCave1 = 14,
+		GurguVolcano1 = 15,
+		IceCave1 = 16,
+		Cardia2 = 17, // CardiaGrass
+		BahamutCave1 = 18,
 		Waterfall = 19,
 		DwarfCave = 20,
 		MatoyasCave = 21,
 		SardasCave = 22,
-		MarshCave = 23,
-		MirageTower = 24,
+		MarshCave1 = 23,
+		MirageTower1 = 24,
 		TitansTunnelEast = 25,
 		TitansTunnelWest = 26,
-		CardiaMarsh = 27,
-		CardiaSmall = 28,
-		CardiaForest = 29,
-		DefaultLocation = 30,
+		Cardia4 = 27, // CardiaMarsh
+		Cardia5 = 28, // CardiaSmall
+		Cardia6 = 29, // CardiaForest
+		DefaultLocation = 30, // DefaultLocation
 		Unused = 31,
 		None = 0xff
 	}

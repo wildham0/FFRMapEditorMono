@@ -1,4 +1,4 @@
-FFR Map Editor v1.02
+FFR Map Editor v1.03
 
 Credits ........... [S01]
 Version Changes ... [S02]
@@ -20,6 +20,7 @@ Source code at
   https://github.com/wildham0/FFRMapEditorMono
 
 *** Version Change *** [S02]
+1.03: - Fixed FFR locations error at import
 1.02: - Added Undo/Redo options for paiting actions on the map.
       - Added automatic backup ("backupowmap.json" in root folder)
 1.01: - Added safeguards to New Map and Load Map functions.
