@@ -26,11 +26,11 @@ namespace FFRMapEditorMono
 			optionsColumns = 8;
 			optionsSize = 32;
 
-			options = Enum.GetNames<OverworldTeleportIndex>().Select((d, i) => (Regex.Replace(d, "([A-Z0-9]+)", " $1").Trim(),
+			options = OwTpIndexToName.Select(d => (d.Value, 
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.DocksUpdate, Value = i } },
+					new EditorTask() { Type = EditorTasks.DocksUpdate, Value = (int)d.Key } },
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.DocksRemove, Value = i } }
+					new EditorTask() { Type = EditorTasks.DocksRemove, Value = (int)d.Key } }
 				)).ToList();
 
 			Show = false;
@@ -63,5 +63,41 @@ namespace FFRMapEditorMono
 				}
 			}
 		}
+		private Dictionary<OverworldTeleportIndex, string> OwTpIndexToName = new()
+		{
+			{ OverworldTeleportIndex.Cardia1, "Cardia North" },
+			{ OverworldTeleportIndex.Coneria, "Coneria" },
+			{ OverworldTeleportIndex.Pravoka, "Pravoka" },
+			{ OverworldTeleportIndex.Elfland, "Elfland" },
+			{ OverworldTeleportIndex.Melmond, "Melmond" },
+			{ OverworldTeleportIndex.CrescentLake, "Crescent Lake" },
+			{ OverworldTeleportIndex.Gaia, "Gaia" },
+			{ OverworldTeleportIndex.Onrac, "Onrac" },
+			{ OverworldTeleportIndex.Lefein, "Lefein" },
+			{ OverworldTeleportIndex.ConeriaCastle1, "Coneria Castle" },
+			{ OverworldTeleportIndex.ElflandCastle, "Elfland Castle" },
+			{ OverworldTeleportIndex.NorthwestCastle, "Northwest Castle" },
+			{ OverworldTeleportIndex.CastleOrdeals1, "Castle of Ordeals" },
+			{ OverworldTeleportIndex.TempleOfFiends1, "Temple Of Fiends" },
+			{ OverworldTeleportIndex.EarthCave1, "Earth Cave" },
+			{ OverworldTeleportIndex.GurguVolcano1, "Gurgu Volcano" },
+			{ OverworldTeleportIndex.IceCave1, "Ice Cave" },
+			{ OverworldTeleportIndex.Cardia2, "Cardia Grass" },
+			{ OverworldTeleportIndex.BahamutCave1, "Bahamut Cave" },
+			{ OverworldTeleportIndex.Waterfall, "Waterfall" },
+			{ OverworldTeleportIndex.DwarfCave, "Dwarf Cave" },
+			{ OverworldTeleportIndex.MatoyasCave, "Matoya's Cave" },
+			{ OverworldTeleportIndex.SardasCave, "Sarda's Cave" },
+			{ OverworldTeleportIndex.MarshCave1, "Marsh Cave" },
+			{ OverworldTeleportIndex.MirageTower1, "Mirage Tower" },
+			{ OverworldTeleportIndex.TitansTunnelEast, "Titan's Tunnel East" },
+			{ OverworldTeleportIndex.TitansTunnelWest, "Titan's Tunnel West" },
+			{ OverworldTeleportIndex.Cardia4, "Cardia Marsh" },
+			{ OverworldTeleportIndex.Cardia5, "Cardia Small" },
+			{ OverworldTeleportIndex.Cardia6, "Cardia Forest" },
+			{ OverworldTeleportIndex.DefaultLocation, "Default Location" },
+			{ OverworldTeleportIndex.Unused, "Unused" },
+			{ OverworldTeleportIndex.None, "None" },
+		};
 	}
 }
