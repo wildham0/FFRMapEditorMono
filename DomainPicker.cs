@@ -45,7 +45,7 @@ namespace FFRMapEditorMono
 			"Lefein Group",
 			"Oops All Imps Group",
 			"Temple of Fiends Group",
-			"Elfland Gorup",
+			"Elfland Group",
 			"Melmond Group",
 			"Coneria Group",
 			"Pravoka Group",
