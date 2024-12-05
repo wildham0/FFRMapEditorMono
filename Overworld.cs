@@ -611,6 +611,11 @@ namespace FFRMapEditorMono
 			int middlex = ((int)(mouse.Position.X - viewOffset.X) / (int)(16 * Zoom)) / 32;
 			int middley = ((int)(mouse.Position.Y - viewOffset.Y) / (int)(16 * Zoom)) / 32;
 
+			if (middlex >= 256 || middley >= 256 || middlex < 0 || middley < 0)
+			{
+				return;
+			}
+
 			domains[middley * 8 + middlex] = (middley * 8 + middlex, tool.EncounterGroup);
 
 			UnsavedChanges = true;
@@ -624,6 +629,11 @@ namespace FFRMapEditorMono
 
 			int middlex = ((int)(mouse.Position.X - viewOffset.X) / (int)(16 * Zoom));
 			int middley = ((int)(mouse.Position.Y - viewOffset.Y) / (int)(16 * Zoom));
+
+			if (middlex >= 256 || middley >= 256 || middlex < 0 || middley < 0)
+			{
+				return;
+			}
 
 			var dockindex = docks.FindIndex(d => d.location == tool.DockLocation);
 			if (dockindex < 0)
@@ -652,6 +662,11 @@ namespace FFRMapEditorMono
 
 			int middlex = ((int)(mouse.Position.X - viewOffset.X) / (int)(16 * Zoom));
 			int middley = ((int)(mouse.Position.Y - viewOffset.Y) / (int)(16 * Zoom));
+
+			if (middlex >= 256 || middley >= 256 || middlex < 0 || middley < 0)
+			{
+				return;
+			}
 
 			var objectindex = mapObjects.FindIndex(o => o.mapobject == tool.MapObject);
 			if (objectindex < 0)
