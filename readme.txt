@@ -1,4 +1,4 @@
-FFR Map Editor v1.03
+FFR Map Editor v1.04
 
 Credits ........... [S01]
 Version Changes ... [S02]
