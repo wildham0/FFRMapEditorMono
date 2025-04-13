@@ -84,7 +84,12 @@ namespace FFRMapEditorMono
 		ResetBackupCounter,
 
 		ExitProgramHard,
-		ExitProgram
+		ExitProgram,
+
+		ToggleGridlines,
+		UpdateGridsize,
+		TogglePositionIndicator,
+
 
 	}
 

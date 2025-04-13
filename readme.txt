@@ -20,7 +20,8 @@ Source code at
   https://github.com/wildham0/FFRMapEditorMono
 
 *** Version Change *** [S02]
-1.03: - Fixed FFR locations error at import
+1.04: - Add Gridlines and Coordinates options.
+1.03: - Fixed FFR locations error at import.
 1.02: - Added Undo/Redo options for paiting actions on the map.
       - Added automatic backup ("backupowmap.json" in root folder)
 1.01: - Added safeguards to New Map and Load Map functions.
@@ -82,6 +83,15 @@ Undo:
 Redo:
  If undo was used, go forward to current actions.
  Keyboard shortcut: LSHIFT+LCTRL+Z
+
+Gridelines:
+ Right-click: Toggle gridelines.
+ Left-click: Change gridelines spacing.
+ Keyboard shortcut: G
+
+Coordinates:
+ Right-click: Switch between no coordinates display, cursor display, lower left corner display.
+ Keyboard shortcut: C
 
 Exit:
  Exit Program

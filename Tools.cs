@@ -22,6 +22,8 @@ namespace FFRMapEditorMono
 		Templates,
 		Docks,
 		MapObjects,
+		Grideline,
+
 		None,
 	}
 	public class CurrentTool
@@ -188,6 +190,10 @@ namespace FFRMapEditorMono
 		{
 			options[5] = ("Brush: " + size, options[5].lefttasks, options[5].righttasks);
 		}
+		public void UpdateGridSize(int size)
+		{
+			options[12] = ("Toggle Gridlines: " + size, options[12].lefttasks, options[12].righttasks);
+		}
 		private List<(string, List<EditorTask>, List<EditorTask>)> toolsTasks = new()
 		{
 			("New Map", new() { new EditorTask() { Type = EditorTasks.FileCreateNewMap, Value = (int)WarningSetting.Trigger } }, new() { new EditorTask() { Type = EditorTasks.None } }),
@@ -202,6 +208,8 @@ namespace FFRMapEditorMono
 			("MapObjects", new() { new EditorTask() { Type = EditorTasks.MapObjectsOpen }, new EditorTask() { Type = EditorTasks.MapObjectsSetTool } }, new() { new EditorTask() { Type = EditorTasks.None } }),
 			("Undo", new() { new EditorTask() { Type = EditorTasks.PaintingUndo } }, new() ),
 			("Redo", new() { new EditorTask() { Type = EditorTasks.PaintingRedo } }, new() ),
+			("Toggle Gridlines: XX", new() { new EditorTask() { Type = EditorTasks.ToggleGridlines } }, new() { new EditorTask() { Type = EditorTasks.UpdateGridsize } } ),
+			("Toggle Coordinates", new() { new EditorTask() { Type = EditorTasks.TogglePositionIndicator } }, new() ),
 			("", new(), new() ),
 			("", new(), new() ),
 			("Exit", new() { new EditorTask() { Type = EditorTasks.ExitProgram } }, new() { new EditorTask() { Type = EditorTasks.None } }),

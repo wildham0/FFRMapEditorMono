@@ -18,6 +18,8 @@ namespace FFRMapEditorMono
 		private ToolsMenu toolsMenu;
 		private InfoWindow infoWindow;
 
+		private EditorMode editorMode;
+
 		private List<WarningWindow> warningWindows;
 		private List<OptionPicker> optionPickers;
 
@@ -55,6 +57,9 @@ namespace FFRMapEditorMono
 
 			unplacedTiles = new();
 
+			// Init Editor Mode
+			editorMode = new FFREditorMode();
+
 			// Create File Manager
 			fileManager = new FileManager();
 			fileManager.LoadSettings();
@@ -70,55 +75,9 @@ namespace FFRMapEditorMono
 		protected override void LoadContent()
 		{
 			_spriteBatch = new SpriteBatch(GraphicsDevice);
-
-			//Load Textures
-			Texture2D tileSetTexture = Content.Load<Texture2D>("maptiles");
-			Texture2D domainGroupsIcons = Content.Load<Texture2D>("domainsicons");
-			Texture2D docksIcons = Content.Load<Texture2D>("docksicons");
-			Texture2D mapobjectsIcons = Content.Load<Texture2D>("mapobjects");
-			Texture2D selectors16 = Content.Load<Texture2D>("cursorsmerge16");
-			Texture2D selectors32 = Content.Load<Texture2D>("cursorsmerge32");
-			Texture2D infowindowtexture = Content.Load<Texture2D>("windowborder");
-			Texture2D toolsTexture = Content.Load<Texture2D>("tools");
-			Texture2D brushesTexture = Content.Load<Texture2D>("smarthbrushes");
-			Texture2D placingIcons = Content.Load<Texture2D>("placingicons");
-			Texture2D templatesIcons = Content.Load<Texture2D>("templatesicons");
-			Texture2D buttonTexture = Content.Load<Texture2D>("button");
-
 			font = Content.Load<SpriteFont>("File");
 
-			// Create overworld
-			overworld = new(tileSetTexture, font, domainGroupsIcons, docksIcons, mapobjectsIcons, GraphicsDevice, _spriteBatch, fileManager.Settings.GetUndoDepth());
-
-			// Create menus
-			toolsMenu = new(toolsTexture, selectors32, font);
-			infoWindow = new(infowindowtexture, font, buttonTexture, windowSize);
-			currentTool = new();
-
-			optionPickers = new()
-			{
-				new DomainPicker(domainGroupsIcons, selectors32, font),
-				new TemplatePicker(templatesIcons, selectors32, font),
-				new DockPicker(docksIcons, selectors32, placingIcons, font, overworld),
-				new MapObjectPicker(mapobjectsIcons, selectors16, placingIcons, font, overworld),
-				new BrushPicker(brushesTexture, selectors16, font),
-				new TilePicker(tileSetTexture, selectors16, placingIcons, font, overworld)
-			};
-
-			// Warning Windows
-			warningWindows = new()
-			{
-				new ExitWarningWindow(infowindowtexture, font, buttonTexture, windowSize),
-				new SaveWarningWindow(infowindowtexture, font, buttonTexture, windowSize),
-				new NewMapWarningWindow(infowindowtexture, font, buttonTexture, windowSize),
-				new LoadMapWarningWindow(infowindowtexture, font, buttonTexture, windowSize)
-			};
-
-			// Create Windows manager
-			windowsManager = new(toolsMenu, infoWindow);
-			windowsManager.RegisterWarningWindows(warningWindows);
-			windowsManager.RegisterOptionPickers(optionPickers);
-
+			editorMode.LoadContent(_spriteBatch, Content, GraphicsDevice, fileManager, font);
 		}
 		protected override void Update(GameTime gameTime)
 		{
@@ -139,7 +98,7 @@ namespace FFRMapEditorMono
 			
 			if (Keyboard.GetState().IsKeyDown(Keys.Escape) || editorTasks.Contains(new EditorTask() { Type = EditorTasks.ExitProgram }))
 			{
-				if (overworld.UnsavedChanges)
+				if (editorMode.UnsavedChanges)
 				{
 					editorTasks.Add(new EditorTask() { Type = EditorTasks.ExitWarningOpen });
 					editorTasks.RemoveAll(t => t.Type == EditorTasks.ExitProgram);
@@ -161,98 +120,23 @@ namespace FFRMapEditorMono
 				return;
 			}
 
-			if (WindowResized())
-			{
-				infoWindow.UpdatePosition(windowSize);
-			}
 
 			if (suspendKeyboard > 0)
 			{
 				suspendKeyboard--;
 			}
-			else if(Keyboard.GetState().IsKeyDown(Keys.LeftControl) && Keyboard.GetState().IsKeyDown(Keys.Z))
-			{
-				if (Keyboard.GetState().IsKeyDown(Keys.LeftShift))
-				{
-					overworld.Redo();
-					suspendKeyboard = 20;
-				}
-				else
-				{
-					overworld.Undo();
-					suspendKeyboard = 20;
-				}
-			}
-
+	
 			// Remove None tasks
 			editorTasks.RemoveAll(t => t.Type == EditorTasks.None);
 
 			// Update Mouse Statuts
 			mouse.Update();
 
-			// Select Options
-			editorTasks.AddRange(toolsMenu.PickOption(mouse));
-			editorTasks.AddRange(infoWindow.ProcessInput(mouse));
+			// Check if window was resized
+			bool windowResized = WindowResized();
 
-			foreach (var picker in optionPickers)
-			{
-				editorTasks.AddRange(picker.PickOption(mouse));
-			}
-
-			foreach (var warning in warningWindows)
-			{
-				editorTasks.AddRange(warning.ProcessInput(mouse));
-			}
-
-			// Update Selected Tool
-			currentTool.Update(editorTasks);
-			currentTool.GetTemplate(editorTasks, optionPickers.OfType<TemplatePicker>().First().CurrentTemplate);
-			toolsMenu.UpdateBrushSize(currentTool.BrushSize + 1);
-
-			// Interact with the map
-			if (windowsManager.CanInteractWithMap(mouse.Position))
-			{
-				overworld.UpdateTile(GraphicsDevice, _spriteBatch, mouse, windowSize, currentTool);
-				overworld.PlaceTemplate(GraphicsDevice, _spriteBatch, mouse, windowSize, currentTool);
-				overworld.UpdateDomain(mouse, currentTool);
-				overworld.UpdateDock(mouse, currentTool);
-				overworld.UpdateMapObject(mouse, currentTool);
-				editorTasks.AddRange(overworld.GetTile(mouse));
-			}
-
-			// Update selected tiles
-			foreach (var picker in optionPickers)
-			{
-				picker.ProcessTasks(editorTasks);
-			}
-
-			// Update Windows
-			windowsManager.ProcessTasks(editorTasks, overworld);
-
-			// Update File management
-			warningWindows.OfType<SaveWarningWindow>().First().ProcessTasks(overworld, optionPickers.OfType<TilePicker>().First().GetUnplacedTiles(), windowSize, editorTasks);
-
-			fileManager.ProcessTasks(overworld, unplacedTiles, editorTasks);
-			overworld.ProcessTasks(fileManager.OverworldData, editorTasks);
-
-			// Process Middle Mouse Button
-			if (Keyboard.GetState().IsKeyDown(Keys.LeftControl))
-			{
-				currentTool.UpdateBrushScroll(mouse);
-			}
-			else
-			{
-				overworld.UpdateZoom(mouse, windowSize);
-			}
-
-			if (mouse.MiddleDown)
-			{
-				overworld.UpdateView(mouse.GetHoldOffset(), windowSize);
-			}
-			else if (mouse.MiddleClick)
-			{
-				mouse.SetHoldOffset();
-			}
+			// Process Editor
+			editorMode.Update(fileManager, mouse, editorTasks, ref suspendKeyboard, windowSize, windowResized);
 
 			// Update Window title
 			if (fileManager.FilenameUpdated)
@@ -266,25 +150,7 @@ namespace FFRMapEditorMono
 
 		protected override void Draw(GameTime gameTime)
 		{
-			// Draw base canvas
-			GraphicsDevice.Clear(Color.DarkSlateGray);
-
-			// Draw map+overlays
-			overworld.Draw(_spriteBatch, windowsManager, currentTool, mouse);
-
-			// Draw menus
-			toolsMenu.Draw(_spriteBatch, font, mouse.Position);
-			infoWindow.Draw(_spriteBatch);
-
-			foreach (var picker in optionPickers)
-			{
-				picker.Draw(_spriteBatch, font, mouse.Position);
-			}
-
-			foreach (var warning in warningWindows)
-			{
-				warning.Draw(_spriteBatch);
-			}
+			editorMode.Draw(mouse, windowSize);
 
 			base.Draw(gameTime);
 		}

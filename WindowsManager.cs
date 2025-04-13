@@ -16,8 +16,10 @@ namespace FFRMapEditorMono
 		private InfoWindow InfoWindow;
 		public bool ShowDomainOverlay { get => showDomainOverlay || optionPickers.OfType<DomainPicker>().First().Show; }
 		public bool ShowDockOverlay { get => showDockOverlay || optionPickers.OfType<DockPicker>().First().Show; }
+		public bool ShowGridlines { get => showGrid; }
 		public bool ShowMapObjectsOverlay { get => showMapObjectsOverlay; }
 		private bool showDomainOverlay;
+		private bool showGrid;
 		private bool showDockOverlay;
 		private bool showMapObjectsOverlay;
 		private List<WarningWindow> warningWindows;
@@ -29,6 +31,7 @@ namespace FFRMapEditorMono
 
 			showDomainOverlay = false;
 			showDockOverlay = false;
+			showGrid = false;
 			showMapObjectsOverlay = true;
 		}
 		public void RegisterWarningWindows(List<WarningWindow> _windows)
@@ -148,6 +151,11 @@ namespace FFRMapEditorMono
 					HideAllWindows();
 					warningWindows.ForEach(w => w.Show = w.GetType() == openTaskToType[task.Type]);
 					optionPickers.ForEach(w => w.Show = w.GetType() == openTaskToType[task.Type]);
+					tasks.Remove(task);
+				}
+				else if (task.Type == EditorTasks.ToggleGridlines)
+				{
+					showGrid = !showGrid;
 					tasks.Remove(task);
 				}
 			}

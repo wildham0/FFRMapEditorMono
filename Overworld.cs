@@ -48,6 +48,13 @@ namespace FFRMapEditorMono
 		SouthEast,
 	}
 
+	public enum PositionIndicatorMode
+	{ 
+		None,
+		Cursor,
+		Corner,
+	}
+
 	public class Overworld
 	{
 		private Texture2D tileSet;
@@ -62,6 +69,10 @@ namespace FFRMapEditorMono
 		private Vector2 viewOffset;
 		private SpriteFont font;
 		public float Zoom { get; set; }
+		public int GridSize { get; set; }
+		private int MapSizeX;
+		private int MapSizeY;
+		private PositionIndicatorMode positionMode;
 		private GraphicsDevice graphicsDevice;
 		private SpriteBatch spriteBatch;
 		private List<SmartBrush> smartBrushes;
@@ -85,12 +96,15 @@ namespace FFRMapEditorMono
 			owMapCurrentTarget = 0;
 			owMapBackSteps = 0;
 			owMapForwardSteps = 0;
+			GridSize = 32;
+			MapSizeX = 256;
+			MapSizeY = 256;
 			currentlyDrawing = false;
 			domainGroupIcons = _domaingroups;
 			docksIcons = _docks;
 			mapObjectsIcons = _mapobjects;
 			owMapUndoDepth = _undodepth;
-			targetMaps = Enumerable.Range(0, owMapUndoDepth + 1).Select(i => new byte[256 * 256]).ToList();
+			targetMaps = Enumerable.Range(0, owMapUndoDepth + 1).Select(i => new byte[MapSizeX * MapSizeY]).ToList();
 			docks = new();
 			mapObjects = new();
 			mapTexture = new(graphicsDevice, 4096, 4096, true, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
@@ -100,6 +114,7 @@ namespace FFRMapEditorMono
 			viewOffset = new(0, 0);
 			font = _font;
 			Zoom = 1.0f;
+			positionMode = PositionIndicatorMode.None;
 
 			UpdatePlacedMapObjects = true;
 			UpdatePlacedDocks = true;
@@ -246,6 +261,25 @@ namespace FFRMapEditorMono
 					UpdatePlacedMapObjects = true;
 					tasks.Remove(task);
 				}
+				else if (task.Type == EditorTasks.UpdateGridsize)
+				{
+					GridSize *= 2;
+					if (GridSize >= MapSizeX || GridSize >= MapSizeY)
+					{
+						GridSize = 8;
+					}
+					tasks.Remove(task);
+				}
+				else if (task.Type == EditorTasks.TogglePositionIndicator)
+				{
+					positionMode++;
+
+					if (positionMode > PositionIndicatorMode.Corner)
+					{
+						positionMode = PositionIndicatorMode.None;
+					}
+					tasks.Remove(task);
+				}
 			}
 
 			if (UpdatePlacedMapObjects)
@@ -307,10 +341,10 @@ namespace FFRMapEditorMono
 		}
 		public void UpdateView(Vector2 offset, Point windowSize)
 		{
-			Vector2 maparea = new Vector2(256 * 16 * Zoom - windowSize.X, 256 * 16 * Zoom - windowSize.Y);
-			Vector2 max = new Vector2(-Math.Max(maparea.X + 128, 0), -Math.Max(maparea.Y + 128, 0));
+			Vector2 maparea = new Vector2(MapSizeX * 16 * Zoom - windowSize.X, MapSizeY * 16 * Zoom - windowSize.Y);
+			Vector2 max = new Vector2(-Math.Max(maparea.X + (MapSizeX / 2), 0), -Math.Max(maparea.Y + (MapSizeY / 2), 0));
 
-			viewOffset = new(Math.Max(max.X, Math.Min(Math.Max(128, -(maparea.X)), viewOffset.X - (offset.X))), Math.Max(max.Y, Math.Min(Math.Max(128, -(maparea.Y)), viewOffset.Y - (offset.Y))));
+			viewOffset = new(Math.Max(max.X, Math.Min(Math.Max((MapSizeX / 2), -(maparea.X)), viewOffset.X - (offset.X))), Math.Max(max.Y, Math.Min(Math.Max((MapSizeY / 2), -(maparea.Y)), viewOffset.Y - (offset.Y))));
 		}
 		public void JumpToLocationView(Vector2 offset, Point windowSize)
 		{
@@ -341,11 +375,11 @@ namespace FFRMapEditorMono
 
 			spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
-			for (int y = 0; y < 256; y++)
+			for (int y = 0; y < MapSizeY; y++)
 			{
-				for (int x = 0; x < 256; x++)
+				for (int x = 0; x < MapSizeX; x++)
 				{
-					int tilevalue = overworldMap[256 * y + x];
+					int tilevalue = overworldMap[MapSizeX * y + x];
 					int xoffset = tilevalue % 0x10;
 					int yoffset = tilevalue / 0x10;
 
@@ -363,11 +397,11 @@ namespace FFRMapEditorMono
 
 			spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
-			for (int y = 0; y < 256; y++)
+			for (int y = 0; y < MapSizeY; y++)
 			{
-				for (int x = 0; x < 256; x++)
+				for (int x = 0; x < MapSizeX; x++)
 				{
-					overworldMap[256 * y + x] = 0x17;
+					overworldMap[MapSizeX * y + x] = 0x17;
 					int tilevalue = 0x17;
 					int xoffset = tilevalue % 0x10;
 					int yoffset = tilevalue / 0x10;
@@ -403,7 +437,7 @@ namespace FFRMapEditorMono
 			int middlex = ((int)(mouse.Position.X - viewOffset.X) / (int)(16 * Zoom));
 			int middley = ((int)(mouse.Position.Y - viewOffset.Y) / (int)(16 * Zoom));
 
-			if (middlex >= 256 || middley >= 256 || middlex < 0 || middley < 0)
+			if (middlex >= MapSizeX || middley >= MapSizeY || middlex < 0 || middley < 0)
 			{
 				return;
 			}
@@ -435,9 +469,9 @@ namespace FFRMapEditorMono
 				{
 					int targetx = middlex + x;
 					int targety = middley + y;
-					if (targetx >= 0 && targetx < 256 && targety >= 0 && targety < 256)
+					if (targetx >= 0 && targetx < MapSizeX && targety >= 0 && targety < MapSizeY)
 					{
-						overworldMap[targety * 256 + targetx] = tool.Tile;
+						overworldMap[targety * MapSizeX + targetx] = tool.Tile;
 						spriteBatch.Draw(tileSet, new Vector2(targetx * 16, targety * 16), GetTileRectangle(tool.Tile), Color.White, 0.0f, new Vector2(0.0f, 0.0f), 1.0f, SpriteEffects.None, 0.0f);
 					}
 				}
@@ -476,7 +510,7 @@ namespace FFRMapEditorMono
 			int middlex = ((int)(mouse.Position.X - viewOffset.X) / (int)(16 * Zoom));
 			int middley = ((int)(mouse.Position.Y - viewOffset.Y) / (int)(16 * Zoom));
 
-			if (middlex >= 256 || middley >= 256 || middlex < 0 || middley < 0)
+			if (middlex >= MapSizeX || middley >= MapSizeY || middlex < 0 || middley < 0)
 			{
 				return;
 			}
@@ -504,9 +538,9 @@ namespace FFRMapEditorMono
 
 					int targetx = middlex + x - minsizex;
 					int targety = middley + y - minsizey;
-					if (targetx >= 0 && targetx < 256 && targety >= 0 && targety < 256)
+					if (targetx >= 0 && targetx < MapSizeX && targety >= 0 && targety < MapSizeY)
 					{
-						overworldMap[targety * 256 + targetx] = tool.Template[y, x];
+						overworldMap[targety * MapSizeX + targetx] = tool.Template[y, x];
 						spriteBatch.Draw(tileSet, new Vector2(targetx * 16, targety * 16), GetTileRectangle(tool.Template[y, x]), Color.White, 0.0f, new Vector2(0.0f, 0.0f), 1.0f, SpriteEffects.None, 0.0f);
 					}
 				}
@@ -524,20 +558,20 @@ namespace FFRMapEditorMono
 			int minsize = -(size / 2);
 			int maxsize = (size / 2);
 
-			if (y < 1 || y > 254)
+			if (y < 1 || y > (MapSizeY - 2))
 			{
 				return;
 			}
 
-			for (int x = Math.Max(1, centerx + minsize); x < Math.Min(centerx + maxsize + 1, 255); x++)
+			for (int x = Math.Max(1, centerx + minsize); x < Math.Min(centerx + maxsize + 1, (MapSizeX - 1)); x++)
 			{
 				List<List<byte>> cluster = new()
 				{
-					overworldMap[((y - 1) * 256 + x - 1)..((y - 1) * 256 + x + 2)].ToList(),
-					overworldMap[((y + 0) * 256 + x - 1)..((y + 0) * 256 + x + 2)].ToList(),
-					overworldMap[((y + 1) * 256 + x - 1)..((y + 1) * 256 + x + 2)].ToList(),
+					overworldMap[((y - 1) * MapSizeX + x - 1)..((y - 1) * MapSizeX + x + 2)].ToList(),
+					overworldMap[((y + 0) * MapSizeX + x - 1)..((y + 0) * MapSizeX + x + 2)].ToList(),
+					overworldMap[((y + 1) * MapSizeX + x - 1)..((y + 1) * MapSizeX + x + 2)].ToList(),
 				};
-				TileGroup tileType = OwDataGroup.TileByteToGroup.TryGetValue(overworldMap[y * 256 + x], out var currentile) ? currentile : TileGroup.Other;
+				TileGroup tileType = OwDataGroup.TileByteToGroup.TryGetValue(overworldMap[y * MapSizeX + x], out var currentile) ? currentile : TileGroup.Other;
 
 				if (tileType == TileGroup.Other || tileType == TileGroup.MountainCave || tileType == TileGroup.SeaRiver || tileType == TileGroup.SpecialDesert)
 				{
@@ -547,7 +581,7 @@ namespace FFRMapEditorMono
 				SmartBrush currentBrush = smartBrushes.Find(s => s.Group == tileType);
 
 				byte newtile = currentBrush.GetTile(cluster);
-				overworldMap[y * 256 + x] = newtile;
+				overworldMap[y * MapSizeX + x] = newtile;
 				spriteBatch.Draw(tileSet, new Vector2(x * 16, y * 16), GetTileRectangle(newtile), Color.White, 0.0f, new Vector2(0.0f, 0.0f), 1.0f, SpriteEffects.None, 0.0f);
 			}
 		}
@@ -556,21 +590,21 @@ namespace FFRMapEditorMono
 			int minsize = -(size / 2);
 			int maxsize = (size / 2);
 
-			if (x < 1 || x > 254)
+			if (x < 1 || x > (MapSizeX - 2))
 			{
 				return;
 			}
 
-			for (int y = Math.Max(1, centery + minsize); y < Math.Min(centery + maxsize + 1, 255); y++)
+			for (int y = Math.Max(1, centery + minsize); y < Math.Min(centery + maxsize + 1, (MapSizeY - 1)); y++)
 			{
 				List<List<byte>> cluster = new()
 				{
-					overworldMap[((y - 1) * 256 + x - 1)..((y - 1) * 256 + x + 2)].ToList(),
-					overworldMap[((y + 0) * 256 + x - 1)..((y + 0) * 256 + x + 2)].ToList(),
-					overworldMap[((y + 1) * 256 + x - 1)..((y + 1) * 256 + x + 2)].ToList(),
+					overworldMap[((y - 1) * MapSizeX + x - 1)..((y - 1) * MapSizeX + x + 2)].ToList(),
+					overworldMap[((y + 0) * MapSizeX + x - 1)..((y + 0) * MapSizeX + x + 2)].ToList(),
+					overworldMap[((y + 1) * MapSizeX + x - 1)..((y + 1) * MapSizeX + x + 2)].ToList(),
 				};
 
-				TileGroup tileType = OwDataGroup.TileByteToGroup.TryGetValue(overworldMap[y * 256 + x], out var currentile) ? currentile : TileGroup.Other;
+				TileGroup tileType = OwDataGroup.TileByteToGroup.TryGetValue(overworldMap[y * MapSizeX + x], out var currentile) ? currentile : TileGroup.Other;
 
 				if (tileType == TileGroup.Other || tileType == TileGroup.MountainCave || tileType == TileGroup.SeaRiver || tileType == TileGroup.SpecialDesert)
 				{
@@ -580,7 +614,7 @@ namespace FFRMapEditorMono
 				SmartBrush currentBrush = smartBrushes.Find(s => s.Group == tileType);
 
 				byte newtile = currentBrush.GetTile(cluster);
-				overworldMap[y * 256 + x] = newtile;
+				overworldMap[y * MapSizeX + x] = newtile;
 				spriteBatch.Draw(tileSet, new Vector2(x * 16, y * 16), GetTileRectangle(newtile), Color.White, 0.0f, new Vector2(0.0f, 0.0f), 1.0f, SpriteEffects.None, 0.0f);
 			}
 		}
@@ -611,7 +645,7 @@ namespace FFRMapEditorMono
 			int middlex = ((int)(mouse.Position.X - viewOffset.X) / (int)(16 * Zoom)) / 32;
 			int middley = ((int)(mouse.Position.Y - viewOffset.Y) / (int)(16 * Zoom)) / 32;
 
-			if (middlex >= 256 || middley >= 256 || middlex < 0 || middley < 0)
+			if (middlex >= MapSizeX || middley >= MapSizeY || middlex < 0 || middley < 0)
 			{
 				return;
 			}
@@ -630,7 +664,7 @@ namespace FFRMapEditorMono
 			int middlex = ((int)(mouse.Position.X - viewOffset.X) / (int)(16 * Zoom));
 			int middley = ((int)(mouse.Position.Y - viewOffset.Y) / (int)(16 * Zoom));
 
-			if (middlex >= 256 || middley >= 256 || middlex < 0 || middley < 0)
+			if (middlex >= MapSizeX || middley >= MapSizeY || middlex < 0 || middley < 0)
 			{
 				return;
 			}
@@ -663,7 +697,7 @@ namespace FFRMapEditorMono
 			int middlex = ((int)(mouse.Position.X - viewOffset.X) / (int)(16 * Zoom));
 			int middley = ((int)(mouse.Position.Y - viewOffset.Y) / (int)(16 * Zoom));
 
-			if (middlex >= 256 || middley >= 256 || middlex < 0 || middley < 0)
+			if (middlex >= MapSizeX || middley >= MapSizeY || middlex < 0 || middley < 0)
 			{
 				return;
 			}
@@ -691,12 +725,12 @@ namespace FFRMapEditorMono
 			int targetx = ((int)(mouse.Position.X - viewOffset.X) / (int)(16 * Zoom));
 			int targety = ((int)(mouse.Position.Y - viewOffset.Y) / (int)(16 * Zoom));
 
-			if (targetx >= 256 || targety >= 256 || targetx < 0 || targety < 0)
+			if (targetx >= MapSizeX || targety >= MapSizeY || targetx < 0 || targety < 0)
 			{
 				return new();
 			}
 
-			int tilevalue = overworldMap[targety * 256 + targetx];
+			int tilevalue = overworldMap[targety * MapSizeX + targetx];
 
 			return new List<EditorTask>() {
 				new EditorTask() { Type = EditorTasks.TilesPickerUpdate, Value = tilevalue },
@@ -710,7 +744,7 @@ namespace FFRMapEditorMono
 
 			return new Rectangle(tilex * 16, tiley * 16, 16, 16);
 		}
-		public void Draw(SpriteBatch spriteBatch, WindowsManager manager, CurrentTool tool, MouseState mouse)
+		public void Draw(SpriteBatch spriteBatch, WindowsManager manager, CurrentTool tool, MouseState mouse, Point windowSize)
 		{
 			spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
@@ -723,6 +757,10 @@ namespace FFRMapEditorMono
 			{
 				DrawDomainsOverlay(spriteBatch);
 			}
+			else if (manager.ShowGridlines)
+			{
+				DrawGrid(spriteBatch);
+			}
 
 			if (manager.ShowDockOverlay)
 			{
@@ -733,9 +771,66 @@ namespace FFRMapEditorMono
 			{
 				DrawMapObjectsOverlay(spriteBatch);
 			}
-			
+
+			DrawCoordinate(spriteBatch, windowSize, mouse);
+
+
 			spriteBatch.End();
 
+		}
+		public void DrawGrid(SpriteBatch spriteBatch)
+		{
+			Texture2D line = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
+			line.SetData(new[] { Color.Red });
+
+			int liney = MapSizeY / GridSize;
+			int linex = MapSizeX / GridSize;
+
+
+			for (int y = 0; y < liney; y++)
+			{
+				for (int x = 0; x < linex; x++)
+				{
+					spriteBatch.Draw(line, new Vector2(viewOffset.X + (x * GridSize * 16) * Zoom, viewOffset.Y + (y * GridSize * 16) * Zoom), new Rectangle(0, 0, (int)(GridSize * 16 * Zoom), 2), Color.White);
+					spriteBatch.Draw(line, new Vector2(viewOffset.X + (x * GridSize * 16) * Zoom, viewOffset.Y + (y * GridSize * 16) * Zoom), new Rectangle(0, 0, 2, (int)(GridSize * 16 * Zoom)), Color.White);
+				}
+			}
+
+			spriteBatch.Draw(line, new Vector2(viewOffset.X + ((linex * GridSize * 16) * Zoom - 2), viewOffset.Y), new Rectangle(0, 0, 2, (int)(MapSizeY * 16 * Zoom)), Color.White);
+			spriteBatch.Draw(line, new Vector2(viewOffset.X, viewOffset.Y + ((liney * GridSize * 16) * Zoom - 2)), new Rectangle(0, 0, (int)(MapSizeX * 16 * Zoom), 2), Color.White);
+		}
+
+		public void DrawCoordinate(SpriteBatch spriteBatch, Point windowSize, MouseState mouse)
+		{
+			int targetx = ((int)(mouse.Position.X - viewOffset.X) / (int)(16 * Zoom));
+			int targety = ((int)(mouse.Position.Y - viewOffset.Y) / (int)(16 * Zoom));
+
+			if (targetx >= MapSizeX || targety >= MapSizeY || targetx < 0 || targety < 0 || (positionMode == PositionIndicatorMode.None))
+			{
+				return;
+			}
+
+			string coordstring = "(" + targetx + ", " + targety + ")";
+
+			float positionx;
+			float positiony;
+
+			if (positionMode == PositionIndicatorMode.Cursor)
+			{
+				positionx = mouse.Position.X + 32;
+				positiony = mouse.Position.Y;
+			}
+			else
+			{
+				positionx = 16;
+				positiony = windowSize.Y - 32;
+			}
+
+			spriteBatch.DrawString(font, coordstring, new Vector2(positionx - 1, positiony), Color.Black);
+			spriteBatch.DrawString(font, coordstring, new Vector2(positionx + 1, positiony), Color.Black);
+			spriteBatch.DrawString(font, coordstring, new Vector2(positionx, positiony - 1), Color.Black);
+			spriteBatch.DrawString(font, coordstring, new Vector2(positionx, positiony + 1), Color.Black);
+			spriteBatch.DrawString(font, coordstring, new Vector2(positionx, positiony), Color.White);
 		}
 
 		public void DrawDomainsOverlay(SpriteBatch spriteBatch)
