@@ -32,7 +32,7 @@ namespace FFRMapEditorMono
 			windowWidth = 28 * 8;
 			okButton = new(_font, "OK", _buttonTexture, new() { new EditorTask() { Type = EditorTasks.ToggleInfoWindow, Value = 10 } });
 
-			windowText = "FFR Map Editor v1.03\n\n" +
+			windowText = "FFR Map Editor v1.04\n\n" +
 				"Main Developer\n   wildham\n\n" +
 				"Icons Designer\n   DarkmoonEX\n\n" +
 				"Based on the work of\n" +
