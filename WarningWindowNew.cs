@@ -26,8 +26,8 @@ namespace FFRMapEditorMono
 
 			buttons = new()
 			{
-				new(font, "Create new map anyway", _buttonTexture, new() { new EditorTask() { Type = EditorTasks.FileCreateNewMap, Value = (int)WarningSetting.Disabled }, new EditorTask() { Type = EditorTasks.NewMapWarningClose, Value = 10 } }),
-				new(font, "Return to editor", _buttonTexture, new() { new EditorTask() { Type = EditorTasks.NewMapWarningClose, Value = 10 } })
+				new(font, "Create new map anyway", _buttonTexture, new() { new EditorTask(EditorTasks.FileLoadMap, (int)WarningSetting.Disabled), new EditorTask(EditorTasks.NewMapWarningClose, 10) }),
+				new(font, "Return to editor", _buttonTexture, new() { new EditorTask(EditorTasks.NewMapWarningClose, 10) })
 			};
 			
 			UpdatePosition(resolution);

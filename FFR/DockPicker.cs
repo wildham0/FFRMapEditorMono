@@ -7,18 +7,18 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using System.Text.RegularExpressions;
 
-namespace FFRMapEditorMono
+namespace FFRMapEditorMono.FFR
 {
 	public class DockPicker : OptionPicker
 	{
-		private Overworld overworld;
-		public DockPicker(Texture2D _window, Texture2D _selector, Texture2D _placedicons, SpriteFont _font, Overworld _overworld)
+		private CanvasFFR overworld;
+		public DockPicker(Texture2D _window, Texture2D _selector, Texture2D _placedicons, SpriteFont _font, Canvas _overworld)
 		{
 			optionsWindow = _window;
 			optionSelector = _selector;
 			optionIcons = _placedicons;
 			optionFont = _font;
-			overworld = _overworld;
+			overworld = (CanvasFFR)_overworld;
 
 			Position = new Vector2(64, 0);
 			zoom = 1.0f;
@@ -28,9 +28,9 @@ namespace FFRMapEditorMono
 
 			options = OwTpIndexToName.Select(d => (d.Value, 
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.DocksUpdate, Value = (int)d.Key } },
+					new EditorTask(EditorTasks.DocksUpdate,(int) d.Key) },
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.DocksRemove, Value = (int)d.Key } }
+					new EditorTask(EditorTasks.DocksRemove,(int) d.Key) }
 				)).ToList();
 
 			Show = false;
@@ -40,26 +40,22 @@ namespace FFRMapEditorMono
 			SetOptionTextLength();
 			showPlaced = true;
 		}
-		public override void ProcessTasks(List<EditorTask> tasks)
+		public override void ProcessTasks(TaskManager tasks)
 		{
-			var validtasks = tasks.ToList();
+			EditorTask task;
 
-			foreach (var task in validtasks)
+			if (tasks.Pop(EditorTasks.UpdatePlacedDocksOverlay, out task))
 			{
-				if (task.Type == EditorTasks.UpdatePlacedDocksOverlay)
+				placedOptions = overworld.GetShipData().Select(d => (int)d.TeleporterIndex).ToList();
+				if (placedOptions.Contains((int)OverworldTeleportIndex.None))
 				{
-					placedOptions = overworld.GetShipData().Select(d => (int)d.TeleporterIndex).ToList();
-					if (placedOptions.Contains((int)OverworldTeleportIndex.None))
-					{
-						placedOptions.RemoveAll(o => o == (int)OverworldTeleportIndex.None);
-						placedOptions.Add((int)OverworldTeleportIndex.DefaultLocation);
-						unplacedOptions = new();
-					}
-					else
-					{
-						unplacedOptions.Add((int)OverworldTeleportIndex.DefaultLocation);
-					}
-					tasks.Remove(task);
+					placedOptions.RemoveAll(o => o == (int)OverworldTeleportIndex.None);
+					placedOptions.Add((int)OverworldTeleportIndex.DefaultLocation);
+					unplacedOptions = new();
+				}
+				else
+				{
+					unplacedOptions.Add((int)OverworldTeleportIndex.DefaultLocation);
 				}
 			}
 		}

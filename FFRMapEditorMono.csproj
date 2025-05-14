@@ -15,6 +15,9 @@
     <None Remove="Icon.bmp" />
     <None Remove="Icon.ico" />
     <None Remove="LICENSE" />
+    <None Remove="MQdata\FFMQR_GraphicRows.json" />
+    <None Remove="MQdata\FFMQR_MapPalettes.json" />
+    <None Remove="MQdata\FFMQR_TilesProperties.json" />
     <None Remove="readme.txt" />
   </ItemGroup>
   <ItemGroup>
@@ -27,6 +30,9 @@
 	  <EmbeddedResource Include="Icon.bmp">
 		  <LogicalName>Icon.bmp</LogicalName>
 	  </EmbeddedResource>
+	  <EmbeddedResource Include="MQdata\FFMQR_GraphicRows.json" />
+	  <EmbeddedResource Include="MQdata\FFMQR_MapPalettes.json" />
+	  <EmbeddedResource Include="MQdata\FFMQR_TilesProperties.json" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303" />

@@ -1,4 +1,4 @@
-FFR Map Editor v1.04
+FFR Map Editor v1.05
 
 Credits ........... [S01]
 Version Changes ... [S02]
@@ -20,6 +20,7 @@ Source code at
   https://github.com/wildham0/FFRMapEditorMono
 
 *** Version Change *** [S02]
+1.05: - Add Selection and Copy/Paste.
 1.04: - Add Gridlines and Coordinates options.
 1.03: - Fixed FFR locations error at import.
 1.02: - Added Undo/Redo options for paiting actions on the map.
@@ -84,14 +85,20 @@ Redo:
  If undo was used, go forward to current actions.
  Keyboard shortcut: LSHIFT+LCTRL+Z
 
+Selection:
+ Enable selection mode.
+ Left-click and hold: Select tiles.
+ LCTRL+C: Copy selection.
+ LCTRL+V: Paste selection.
+
 Gridelines:
  Right-click: Toggle gridelines.
  Left-click: Change gridelines spacing.
  Keyboard shortcut: G
 
 Coordinates:
- Right-click: Switch between no coordinates display, cursor display, lower left corner display.
- Keyboard shortcut: C
+ Right-click: Toggle coordinates display in the left corner.
+ Keyboard shortcut: I
 
 Exit:
  Exit Program

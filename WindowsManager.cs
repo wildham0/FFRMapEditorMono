@@ -7,15 +7,17 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using FFRMapEditorMono.MysticQuest;
+using FFRMapEditorMono.FFR;
 
 namespace FFRMapEditorMono
 {
 	public class WindowsManager
 	{
-		private ToolsMenu ToolsWindow;
+		private OptionPicker ToolsWindow;
 		private InfoWindow InfoWindow;
-		public bool ShowDomainOverlay { get => showDomainOverlay || optionPickers.OfType<DomainPicker>().First().Show; }
-		public bool ShowDockOverlay { get => showDockOverlay || optionPickers.OfType<DockPicker>().First().Show; }
+		public bool ShowDomainOverlay { get => showDomainOverlay || (optionPickers.OfType<DomainPicker>().Any() ? optionPickers.OfType<DomainPicker>().First().Show : false); }
+		public bool ShowDockOverlay { get => showDockOverlay || (optionPickers.OfType<DockPicker>().Any() ? optionPickers.OfType<DockPicker>().First().Show : false); }
 		public bool ShowGridlines { get => showGrid; }
 		public bool ShowMapObjectsOverlay { get => showMapObjectsOverlay; }
 		private bool showDomainOverlay;
@@ -24,7 +26,7 @@ namespace FFRMapEditorMono
 		private bool showMapObjectsOverlay;
 		private List<WarningWindow> warningWindows;
 		private List<OptionPicker> optionPickers;
-		public WindowsManager(ToolsMenu _toolsmenu, InfoWindow _infowindow)
+		public WindowsManager(OptionPicker _toolsmenu, InfoWindow _infowindow)
 		{
 			ToolsWindow = _toolsmenu;
 			InfoWindow = _infowindow;
@@ -69,95 +71,95 @@ namespace FFRMapEditorMono
 
 			InfoWindow.Show = false;
 		}
-		public void ProcessTasks(List<EditorTask> tasks, Overworld overworld)
+		public void ProcessTasks(TaskManager tasks)
 		{
-			var validtasks = tasks.ToList();
+			EditorTask task;
 
-			foreach (var task in validtasks)
+			if (tasks.Pop(EditorTasks.ToggleInfoWindow, out task))
 			{
-				if (task.Type == EditorTasks.ToggleInfoWindow)
+				if (task.Value > 0)
 				{
-					if (task.Value > 0)
+					tasks.Add(new EditorTask(task.Type, task.Value - 1));
+				}
+				else
+				{
+					if (!InfoWindow.Show)
 					{
-						tasks.Add(new EditorTask() { Type = task.Type, Value = task.Value - 1 });
-						tasks.Remove(task);
+						HideAllWindows();
 					}
-					else
-					{
-						if (!InfoWindow.Show)
-						{
-							HideAllWindows();
-						}
 
-						InfoWindow.Show = !InfoWindow.Show;
-						tasks.Remove(task);
-					}
+					InfoWindow.Show = !InfoWindow.Show;
 				}
-				else if (task.Type == EditorTasks.HideAllWindows)
+			}
+
+			if (tasks.Pop(EditorTasks.HideAllWindows, out task))
+			{
+				if (task.Value > 0)
+				{
+					tasks.Add(new EditorTask(task.Type, task.Value - 1));
+				}
+				else
+				{
+					HideAllWindows();
+				}
+			}
+
+			if (tasks.Pop(EditorTasks.WindowsClose, out task))
+			{
+				if (task.Value > 0)
+				{
+					tasks.Add(new EditorTask(task.Type, task.Value - 1));
+				}
+				else
+				{
+					HideAllWindows();
+				}
+			}
+
+			foreach (var toggletask in toggleTaskToType)
+			{
+				if (tasks.Pop(toggletask, out task))
 				{
 					if (task.Value > 0)
 					{
-						tasks.Add(new EditorTask() { Type = task.Type, Value = task.Value - 1 });
-						tasks.Remove(task);
+						tasks.Add(new EditorTask(task.Type, task.Value - 1));
 					}
 					else
 					{
-						HideAllWindows();
-						tasks.Remove(task);
+						optionPickers.ForEach(w => w.Show = ((w.ToggleTask == task.Type) && !w.Show));
 					}
 				}
-				else if (task.Type == EditorTasks.WindowsClose)
+			}
+
+			foreach (var closetask in closeTaskToType)
+			{
+				if (tasks.Pop(closetask.Key, out task))
 				{
 					if (task.Value > 0)
 					{
-						tasks.Add(new EditorTask() { Type = task.Type, Value = task.Value - 1 });
-						tasks.Remove(task);
-					}
-					else
-					{
-						HideAllWindows();
-						tasks.Remove(task);
-					}
-				}
-				else if (toggleTaskToType.ContainsKey(task.Type))
-				{
-					if (task.Value > 0)
-					{
-						tasks.Add(new EditorTask() { Type = task.Type, Value = task.Value - 1 });
-						tasks.Remove(task);
-					}
-					else
-					{
-						optionPickers.ForEach(w => w.Show = w.GetType() == toggleTaskToType[task.Type] && !w.Show);
-						tasks.Remove(task);
-					}
-				}
-				else if (closeTaskToType.ContainsKey(task.Type))
-				{
-					if (task.Value > 0)
-					{
-						tasks.Add(new EditorTask() { Type = task.Type, Value = task.Value - 1 });
-						tasks.Remove(task);
+						tasks.Add(new EditorTask(task.Type, task.Value - 1));
 					}
 					else
 					{
 						warningWindows.ForEach(w => w.Show = w.GetType() != closeTaskToType[task.Type] && w.Show);
 						optionPickers.ForEach(w => w.Show = w.GetType() != closeTaskToType[task.Type] && w.Show);
-						tasks.Remove(task);
 					}
 				}
-				else if (openTaskToType.ContainsKey(task.Type))
+			}
+
+			foreach (var opentask in openTaskToType)
+			{
+				if (tasks.Pop(opentask.Key, out task))
 				{
 					HideAllWindows();
-					warningWindows.ForEach(w => w.Show = w.GetType() == openTaskToType[task.Type]);
-					optionPickers.ForEach(w => w.Show = w.GetType() == openTaskToType[task.Type]);
-					tasks.Remove(task);
+					warningWindows.ForEach(w => w.Show = openTaskToType[task.Type].Contains(w.GetType()));
+					optionPickers.ForEach(w => w.Show = openTaskToType[task.Type].Contains(w.GetType()));
 				}
-				else if (task.Type == EditorTasks.ToggleGridlines)
-				{
-					showGrid = !showGrid;
-					tasks.Remove(task);
-				}
+			}
+
+			if (tasks.Pop(EditorTasks.ToggleGridlines, out task))
+			{
+				showGrid = !showGrid;
 			}
 		}
 		static Dictionary<EditorTasks, Type> closeTaskToType = new()
@@ -167,23 +169,25 @@ namespace FFRMapEditorMono
 			{ EditorTasks.LoadMapWarningClose, typeof(LoadMapWarningWindow) },
 			{ EditorTasks.NewMapWarningClose, typeof(NewMapWarningWindow) },
 		};
-		static Dictionary<EditorTasks, Type> toggleTaskToType = new()
+		
+		static List<EditorTasks> toggleTaskToType = new()
 		{
-			{ EditorTasks.BrushesToggle, typeof(BrushPicker) },
-			{ EditorTasks.TilesToggle, typeof(TilePicker) },
+			EditorTasks.BrushesToggle, EditorTasks.TilesToggle, EditorTasks.ResizeToggle
+
 		};
-		static Dictionary<EditorTasks, Type> openTaskToType = new()
+		static Dictionary<EditorTasks, List<Type>> openTaskToType = new()
 		{
-			{ EditorTasks.DomainsOpen, typeof(DomainPicker) },
-			{ EditorTasks.BrushesOpen, typeof(BrushPicker) },
-			{ EditorTasks.TilesOpen, typeof(TilePicker) },
-			{ EditorTasks.TemplatesOpen, typeof(TemplatePicker) },
-			{ EditorTasks.DocksOpen, typeof(DockPicker) },
-			{ EditorTasks.MapObjectsOpen, typeof(MapObjectPicker) },
-			{ EditorTasks.ExitWarningOpen, typeof(ExitWarningWindow) },
-			{ EditorTasks.SaveWarningOpen, typeof(SaveWarningWindow) },
-			{ EditorTasks.LoadMapWarningOpen, typeof(LoadMapWarningWindow) },
-			{ EditorTasks.NewMapWarningOpen, typeof(NewMapWarningWindow) },
+			{ EditorTasks.DomainsOpen, new() { typeof(DomainPicker) } },
+			{ EditorTasks.BrushesOpen, new() { typeof(BrushPicker) } },
+			{ EditorTasks.TilesOpen, new() { typeof(TilePicker), typeof(TilePickerMQ) } },
+			{ EditorTasks.TemplatesOpen, new() { typeof(TemplatePicker) } },
+			{ EditorTasks.DocksOpen, new() { typeof(DockPicker) } },
+			{ EditorTasks.MapObjectsOpen, new() { typeof(MapObjectPicker) } },
+			{ EditorTasks.ExitWarningOpen, new() { typeof(ExitWarningWindow) } },
+			{ EditorTasks.SaveWarningOpen, new() { typeof(SaveWarningWindow) } },
+			{ EditorTasks.LoadMapWarningOpen, new() { typeof(LoadMapWarningWindow) } },
+			{ EditorTasks.NewMapWarningOpen, new() { typeof(NewMapWarningWindow) } },
+			//{ EditorTasks.ResizeToggle, new() { typeof(MapResize) } },
 		};
 
 	}

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using System.Net.Sockets;
 
 namespace FFRMapEditorMono
 {
@@ -18,6 +19,8 @@ namespace FFRMapEditorMono
 	{
 		public Vector2 Position { get; set; }
 		public bool Show { get; set; }
+
+		public EditorTasks ToggleTask { get; set; }
 
 		protected Texture2D optionsWindow;
 		protected Texture2D optionSelector;
@@ -41,6 +44,7 @@ namespace FFRMapEditorMono
 			optionIcons = _optionicons;
 
 			Show = true;
+			ToggleTask = EditorTasks.None;
 			Position = new Vector2(0, 0);
 			zoom = 2.0f;
 			optionsRows = _optionsrows;
@@ -96,7 +100,7 @@ namespace FFRMapEditorMono
 
 			return window.Contains(mousecursor) && Show;
 		}
-		public virtual void ProcessTasks(List<EditorTask> tasks) { }
+		public virtual void ProcessTasks(TaskManager tasks) { }
 		public virtual void Draw(SpriteBatch spriteBatch, SpriteFont font, Vector2 mouseCursor)
 		{
 			if (!Show)
@@ -150,7 +154,12 @@ namespace FFRMapEditorMono
 
 				spriteBatch.Draw(optionSelector, new Vector2(Position.X + selectionx * (optionsSize * zoom), Position.Y + selectiony * (optionsSize * zoom)), new Rectangle(0, 0, optionSelector.Height, optionSelector.Height), Color.White, 0.0f, new Vector2(0.0f, 0.0f), zoom, SpriteEffects.None, 0.0f);
 
-				string optionname = options[currentselection].name;
+				string optionname = "";
+
+				if (options.Count > currentselection)
+				{
+					optionname = options[currentselection].name;
+				}
 
 				if (optionname != "")
 				{

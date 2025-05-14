@@ -28,8 +28,8 @@ namespace FFRMapEditorMono
 
 			buttons = new()
 			{
-				new(font, "Exit anyway", _buttonTexture, new() { new EditorTask() { Type = EditorTasks.ExitProgramHard } }),
-				new(font, "Return to editor", _buttonTexture, new() { new EditorTask() { Type = EditorTasks.ExitWarningClose, Value = 10 } })
+				new(font, "Exit anyway", _buttonTexture, new() { new EditorTask(EditorTasks.ExitProgramHard) }),
+				new(font, "Return to editor", _buttonTexture, new() { new EditorTask(EditorTasks.ExitWarningClose, 10) })
 			};
 		}
 	}

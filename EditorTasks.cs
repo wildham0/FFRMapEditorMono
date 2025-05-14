@@ -90,12 +90,95 @@ namespace FFRMapEditorMono
 		UpdateGridsize,
 		TogglePositionIndicator,
 
+		// Mystic Quest Specific Tasks
+		ReloadPicker,
+		ToggleLayer,
+		ToggleDrawingLayer,
+		ToggleInfoBox,
+
+		ResizeMap,
+		ResizeToggle,
+		ResizeUpdateSelection,
+
+		SelectorSetTool,
+		PasterSetTool,
+		RestoreTool,
+
+		InfoBoxUpdateLayer,
+		InfoBoxUpdateCoordinates,
+
+		Undo,
+		Redo,
+		Copy,
+		Paste,
+
+
 
 	}
 
-	public struct EditorTask
+	public class EditorTask
 	{ 
 		public EditorTasks Type { get; set; }
 		public int Value { get; set; }
+
+		public EditorTask(EditorTasks type, int value = 0)
+		{
+			Type = type;
+			Value = value;
+		}
+	}
+
+	public class TaskManager
+	{
+		private List<EditorTask> tasks;
+
+		public TaskManager()
+		{
+			tasks = new();
+		}
+		public void Add(EditorTask task)
+		{
+			tasks.Add(task);
+		}
+		public void Add(EditorTasks task)
+		{
+			tasks.Add(new EditorTask(task));
+		}
+		public void AddRange(List<EditorTask> tasklist)
+		{
+			tasks.AddRange(tasklist);
+		}
+		public void Prune(EditorTasks task)
+		{
+			tasks.RemoveAll(t => t.Type == task);
+		}
+		public bool Pop(EditorTasks type, out EditorTask task)
+		{
+			int resultIndex = tasks.FindIndex(t => t.Type == type);
+			if (resultIndex < 0)
+			{
+				task = null;
+				return false;
+			}
+			else
+			{
+				task = tasks[resultIndex];
+				tasks.RemoveAt(resultIndex);
+				return true;
+			}
+		}
+		public bool Pop(EditorTasks type)
+		{
+			int resultIndex = tasks.FindIndex(t => t.Type == type);
+			if (resultIndex < 0)
+			{
+				return false;
+			}
+			else
+			{
+				tasks.RemoveAt(resultIndex);
+				return true;
+			}
+		}
 	}
 }

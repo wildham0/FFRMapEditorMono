@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using FFRMapEditorMono.FFR;
+using Microsoft.VisualBasic.Devices;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -12,9 +14,11 @@ namespace FFRMapEditorMono
 {
 	public class Game1 : Game
 	{
+		// Set mode to switch between FFR or FFMQ editing mode
+		private GameMode gameMode = GameMode.FFR;
 		private GraphicsDeviceManager _graphics;
 		private SpriteBatch _spriteBatch;
-		private Overworld overworld;
+		private Canvas overworld;
 		private ToolsMenu toolsMenu;
 		private InfoWindow infoWindow;
 
@@ -28,12 +32,12 @@ namespace FFRMapEditorMono
 		private FileManager fileManager;
 		private CurrentTool currentTool;
 		private MouseState mouse;
-		private List<EditorTask> editorTasks;
+		private KeyboardState keyboard;
+		private TaskManager editorTasks;
 		private WindowsManager windowsManager;
 		
 		private bool LastActiveState = true;
 		private List<string> unplacedTiles;
-		private int suspendKeyboard = 0;
 		private int timeToBackup;
 		public Game1()
 		{
@@ -48,20 +52,21 @@ namespace FFRMapEditorMono
 		{
 			Window.Title = "FFR Map Editor";
 			Window.AllowUserResizing = true;
-
-			// Init Mouse
-			mouse = new();
-
+			
 			// Init Tasks list
 			editorTasks = new();
+
+			// Init Inputs
+			mouse = new();
+			keyboard = new(editorTasks);
 
 			unplacedTiles = new();
 
 			// Init Editor Mode
-			editorMode = new FFREditorMode();
+			editorMode = gameMode == GameMode.FFR ? new FFR.FFREditorMode() : new MysticQuest.MQEditorMode();
 
 			// Create File Manager
-			fileManager = new FileManager();
+			fileManager = new FileManager(gameMode);
 			fileManager.LoadSettings();
 			windowSize = fileManager.Settings.GetResolution();
 			timeToBackup = fileManager.Settings.GetBackupDelay();
@@ -77,13 +82,12 @@ namespace FFRMapEditorMono
 			_spriteBatch = new SpriteBatch(GraphicsDevice);
 			font = Content.Load<SpriteFont>("File");
 
-			editorMode.LoadContent(_spriteBatch, Content, GraphicsDevice, fileManager, font);
+			editorMode.LoadContent(_spriteBatch, Content, mouse, GraphicsDevice, fileManager, font, editorTasks);
 		}
 		protected override void Update(GameTime gameTime)
 		{
-			if (editorTasks.Contains(new EditorTask() { Type = EditorTasks.ResetBackupCounter }))
+			if (editorTasks.Pop(EditorTasks.ResetBackupCounter))
 			{
-				editorTasks.RemoveAll(t => t.Type == EditorTasks.ResetBackupCounter);
 				timeToBackup = fileManager.Settings.GetBackupDelay();
 			}
 			else if (timeToBackup > 0)
@@ -92,16 +96,16 @@ namespace FFRMapEditorMono
 			}
 			else
 			{
-				editorTasks.Add(new EditorTask() { Type = EditorTasks.SaveBackupMap });
+				editorTasks.Add(new EditorTask(EditorTasks.SaveBackupMap));
 				timeToBackup = fileManager.Settings.GetBackupDelay();
 			}
 			
-			if (Keyboard.GetState().IsKeyDown(Keys.Escape) || editorTasks.Contains(new EditorTask() { Type = EditorTasks.ExitProgram }))
+			if (editorTasks.Pop(EditorTasks.ExitProgram))
 			{
 				if (editorMode.UnsavedChanges)
 				{
-					editorTasks.Add(new EditorTask() { Type = EditorTasks.ExitWarningOpen });
-					editorTasks.RemoveAll(t => t.Type == EditorTasks.ExitProgram);
+					editorTasks.Add(EditorTasks.ExitWarningOpen);
+					editorTasks.Prune(EditorTasks.ExitProgram);
 				}
 				else
 				{
@@ -109,7 +113,7 @@ namespace FFRMapEditorMono
 				}
 			}
 
-			if (editorTasks.Contains(new EditorTask() { Type = EditorTasks.ExitProgramHard }))
+			if (editorTasks.Pop(EditorTasks.ExitProgramHard))
 			{
 				Exit();
 			}
@@ -119,24 +123,19 @@ namespace FFRMapEditorMono
 			{
 				return;
 			}
-
-
-			if (suspendKeyboard > 0)
-			{
-				suspendKeyboard--;
-			}
 	
 			// Remove None tasks
-			editorTasks.RemoveAll(t => t.Type == EditorTasks.None);
+			editorTasks.Prune(EditorTasks.None);
 
-			// Update Mouse Statuts
+			// Update Input Statuts
 			mouse.Update();
+			keyboard.Update();
 
 			// Check if window was resized
 			bool windowResized = WindowResized();
 
 			// Process Editor
-			editorMode.Update(fileManager, mouse, editorTasks, ref suspendKeyboard, windowSize, windowResized);
+			editorMode.Update(fileManager, editorTasks, keyboard, windowSize, windowResized);
 
 			// Update Window title
 			if (fileManager.FilenameUpdated)
