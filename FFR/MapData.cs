@@ -9,7 +9,7 @@ using System.Reflection.Metadata;
 using System.Text.Json;
 using System.Security.Cryptography;
 
-namespace FFRMapEditorMono
+namespace FFRMapEditorMono.FFR
 {
 	public enum OverworldTeleportIndex : byte
 	{
@@ -126,9 +126,9 @@ namespace FFRMapEditorMono
 		public TeleportFixup() { }
 		public TeleportFixup(TeleportType tp, int idx, TeleData to)
 		{
-			this.Type = tp;
-			this.Index = idx;
-			this.To = to;
+			Type = tp;
+			Index = idx;
+			To = to;
 		}
 
 		public TeleportType Type { get; set; }
@@ -163,7 +163,7 @@ namespace FFRMapEditorMono
 			var x1 = X & 0x3F;
 			var x2 = X & 0xC0;
 
-			X = (byte)((64 - x1 - 1) | x2);
+			X = (byte)(64 - x1 - 1 | x2);
 		}
 
 		public void FlipYcoordinate()
@@ -171,7 +171,7 @@ namespace FFRMapEditorMono
 			var y1 = Y & 0x3F;
 			var y2 = Y & 0xC0;
 
-			Y = (byte)((64 - y1 - 1) | y2);
+			Y = (byte)(64 - y1 - 1 | y2);
 		}
 	}
 	public class DomainFixup
@@ -184,20 +184,20 @@ namespace FFRMapEditorMono
 	{
 		public OwMapExchangeData(OwMapExchangeData copy)
 		{
-			this.StartingLocation = copy.StartingLocation;
-			this.AirShipLocation = copy.AirShipLocation;
-			this.BridgeLocation = copy.BridgeLocation;
-			this.CanalLocation = copy.CanalLocation;
-			this.ShipLocations = copy.ShipLocations;
-			this.TeleporterFixups = copy.TeleporterFixups;
-			this.DomainFixups = copy.DomainFixups;
-			this.DomainUpdates = copy.DomainUpdates;
-			this.OverworldCoordinates = copy.OverworldCoordinates;
-			this.DecompressedMapRows = copy.DecompressedMapRows;
-			this.FFRVersion = copy.FFRVersion;
-			this.Checksum = copy.Checksum;
-			this.Seed = copy.Seed;
-			this.HorizontalBridge = copy.HorizontalBridge;
+			StartingLocation = copy.StartingLocation;
+			AirShipLocation = copy.AirShipLocation;
+			BridgeLocation = copy.BridgeLocation;
+			CanalLocation = copy.CanalLocation;
+			ShipLocations = copy.ShipLocations;
+			TeleporterFixups = copy.TeleporterFixups;
+			DomainFixups = copy.DomainFixups;
+			DomainUpdates = copy.DomainUpdates;
+			OverworldCoordinates = copy.OverworldCoordinates;
+			DecompressedMapRows = copy.DecompressedMapRows;
+			FFRVersion = copy.FFRVersion;
+			Checksum = copy.Checksum;
+			Seed = copy.Seed;
+			HorizontalBridge = copy.HorizontalBridge;
 		}
 		public string FFRVersion { get; set; }
 		public string Checksum { get; set; }
@@ -237,7 +237,7 @@ namespace FFRMapEditorMono
 			copy.Checksum = "";
 			copy.Seed = 0;
 
-			var content = JsonSerializer.Serialize<OwMapExchangeData>(copy);
+			var content = JsonSerializer.Serialize(copy);
 			//content = "\'" + content.Replace("\\u002B", "+") + "\'";
 			content = content.Replace("\\u002B", "+");
 
@@ -270,7 +270,7 @@ namespace FFRMapEditorMono
 
 			DecompressedMapRows = rows;
 		}
-		public void EncodeMap(Overworld overworld)
+		public void EncodeMap(CanvasFFR overworld)
 		{
 			var map = overworld.GetOwBytes();
 			EncodeMapFromBytes(map);
@@ -288,7 +288,7 @@ namespace FFRMapEditorMono
 				var index = foundtiles.Last().i;
 
 
-				OverworldCoordinates.Add(Enum.GetName<OverworldTeleportIndex>(entry.id), new SCCoords(index % 256, index / 256));
+				OverworldCoordinates.Add(Enum.GetName(entry.id), new SCCoords(index % 256, index / 256));
 				coordList.Add((entry.id, new SCCoords(index % 256, index / 256)));
 			}
 

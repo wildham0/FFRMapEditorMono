@@ -30,9 +30,9 @@ namespace FFRMapEditorMono
 			Show = false;
 			zoom = 3.0f;
 			windowWidth = 28 * 8;
-			okButton = new(_font, "OK", _buttonTexture, new() { new EditorTask() { Type = EditorTasks.ToggleInfoWindow, Value = 10 } });
+			okButton = new(_font, "OK", _buttonTexture, new() { new EditorTask(EditorTasks.ToggleInfoWindow, 10) });
 
-			windowText = "FFR Map Editor v1.04\n\n" +
+			windowText = "FFR Map Editor v1.05\n\n" +
 				"Main Developer\n   wildham\n\n" +
 				"Icons Designer\n   DarkmoonEX\n\n" +
 				"Based on the work of\n" +

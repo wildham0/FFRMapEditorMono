@@ -6,19 +6,19 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 
-namespace FFRMapEditorMono
+namespace FFRMapEditorMono.FFR
 {
 	public class MapObjectPicker : OptionPicker
 	{
-		private Overworld overworld;
-		public MapObjectPicker(Texture2D _window, Texture2D _selector, Texture2D _placingicons, SpriteFont _font, Overworld _overworld)
+		private CanvasFFR overworld;
+		public MapObjectPicker(Texture2D _window, Texture2D _selector, Texture2D _placingicons, SpriteFont _font, Canvas _overworld)
 		{
 			optionsWindow = _window;
 			optionSelector = _selector;
 			optionIcons = _placingicons;
 			optionFont = _font;
 
-			overworld = _overworld;
+			overworld = (CanvasFFR)_overworld;
 
 			Position = new Vector2(64, 0);
 			zoom = 2.0f;
@@ -28,9 +28,9 @@ namespace FFRMapEditorMono
 
 			options = mapObjectsNames.Select((o, i) => (o.Item1,
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.MapObjectsUpdate, Value = i } },
+					new EditorTask(EditorTasks.MapObjectsUpdate, i) },
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.MapObjectsRemove, Value = i } }
+					new EditorTask(EditorTasks.MapObjectsRemove, i) }
 				)).ToList();
 
 			Show = false;
@@ -50,17 +50,13 @@ namespace FFRMapEditorMono
 			("Ship (Unused)", EditorTasks.None, EditorTasks.None),
 			("Airship", EditorTasks.None, EditorTasks.None),
 		};
-		public override void ProcessTasks(List<EditorTask> tasks)
+		public override void ProcessTasks(TaskManager tasks)
 		{
-			var validtasks = tasks.ToList();
+			EditorTask task;
 
-			foreach (var task in validtasks)
+			if (tasks.Pop(EditorTasks.UpdatePlacedObjectsOverlay, out task))
 			{
-				if (task.Type == EditorTasks.UpdatePlacedObjectsOverlay)
-				{
-					placedOptions = overworld.GetPlacedMapObjects().Select(o => (int)o).ToList();
-					tasks.Remove(task);
-				}
+				placedOptions = overworld.GetPlacedMapObjects().Select(o => (int)o).ToList();
 			}
 		}
 	}

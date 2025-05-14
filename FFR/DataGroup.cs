@@ -9,7 +9,7 @@ using System.Reflection.Metadata;
 using System.Text.Json;
 using System.Security.Cryptography;
 
-namespace FFRMapEditorMono
+namespace FFRMapEditorMono.FFR
 {
 	public static class OwDataGroup
 	{

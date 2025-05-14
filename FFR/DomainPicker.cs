@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 
-namespace FFRMapEditorMono
+namespace FFRMapEditorMono.FFR
 {
 	public class DomainPicker : OptionPicker
 	{
@@ -24,9 +24,9 @@ namespace FFRMapEditorMono
 
 			options = Domainsname.Select((d, i) => (d,
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.DomainsUpdate, Value = i } },
+					new EditorTask(EditorTasks.DomainsUpdate, i) },
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.DomainsUpdate, Value = i } }
+					new EditorTask(EditorTasks.DomainsUpdate, i) }
 				)).ToList();
 
 			Show = false;

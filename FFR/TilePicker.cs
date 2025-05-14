@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 
-namespace FFRMapEditorMono
+namespace FFRMapEditorMono.FFR
 {
 	public class BrushPicker : OptionPicker
 	{
@@ -15,6 +15,7 @@ namespace FFRMapEditorMono
 			optionsWindow = _window;
 			optionSelector = _selector;
 			optionFont = _font;
+			ToggleTask = EditorTasks.BrushesToggle;
 
 			Show = false;
 			Position = new Vector2(64, 0);
@@ -25,37 +26,33 @@ namespace FFRMapEditorMono
 
 			options = brushNames.Select((b, i) => (b,
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.BrushesUpdate, Value = i },
-					new EditorTask() { Type = EditorTasks.WindowsClose, Value = 10 } },
+					new EditorTask(EditorTasks.BrushesUpdate, i),
+					new EditorTask(EditorTasks.WindowsClose, 10) },
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.BrushesUpdate, Value = i } }
+					new EditorTask(EditorTasks.BrushesUpdate, i) }
 			)).ToList();
 
 			lastSelection = 0x00;
 			SetOptionTextLength();
 			showPlaced = false;
 		}
-		public override void ProcessTasks(List<EditorTask> tasks)
+		public override void ProcessTasks(TaskManager tasks)
 		{
-			var validtasks = tasks.ToList();
+			EditorTask task;
 
-			foreach (var task in validtasks)
+			if (tasks.Pop(EditorTasks.BrushesPickerUpdate, out task))
 			{
-				if (task.Type == EditorTasks.BrushesPickerUpdate)
+				int validselection = 0;
+
+				if (OwDataGroup.TileByteToGroup.TryGetValue((byte)task.Value, out var result))
 				{
-					int validselection = 0;
-
-					if (OwDataGroup.TileByteToGroup.TryGetValue((byte)task.Value, out var result))
+					if (result <= TileGroup.Marsh)
 					{
-						if (result <= TileGroup.Marsh)
-						{
-							validselection = (int)result;
-						}
+						validselection = (int)result;
 					}
-
-					lastSelection = validselection;
-					tasks.Remove(task);
 				}
+
+				lastSelection = validselection;
 			}
 		}
 		public void UpdateTile(byte tile)
@@ -76,14 +73,15 @@ namespace FFRMapEditorMono
 	}
 	public class TilePicker : OptionPicker
 	{
-		private Overworld overworld;
-		public TilePicker(Texture2D _window, Texture2D _selector, Texture2D _placedicons, SpriteFont _font, Overworld _overworld)
+		private Canvas overworld;
+		public TilePicker(Texture2D _window, Texture2D _selector, Texture2D _placedicons, SpriteFont _font, Canvas _overworld)
 		{
 			optionsWindow = _window;
 			optionSelector = _selector;
 			optionIcons = _placedicons;
 			optionFont = _font;
 			overworld = _overworld;
+			ToggleTask = EditorTasks.TilesToggle;
 
 			Show = false;
 			Position = new Vector2(64, 0);
@@ -92,89 +90,48 @@ namespace FFRMapEditorMono
 			optionsColumns = 0x10;
 			optionsSize = 16;
 
-			options = TileNames.Select((t, i) => (t,
+			options = TileInfo.Names.Select((t, i) => (t,
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.TilesUpdate, Value = i },
-					new EditorTask() { Type = EditorTasks.WindowsClose, Value = 10 } },
+					new EditorTask(EditorTasks.TilesUpdate, i),
+					new EditorTask(EditorTasks.WindowsClose, 10) },
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.TilesUpdate, Value = i } }
+					new EditorTask(EditorTasks.TilesUpdate, i) }
 				)).ToList();
 
 			SetOptionTextLength();
 			lastSelection = 0x00;
 			placedOptions = new();
-			unplacedOptions = requiredTiles.Select(t => (int)t).ToList();
+			unplacedOptions = TileInfo.Required.Select(t => (int)t).ToList();
 			showPlaced = true;
 		}
-		public override void ProcessTasks(List<EditorTask> tasks)
+		public override void ProcessTasks(TaskManager tasks)
 		{
-			var validtasks = tasks.ToList();
+			EditorTask task;
 
-			foreach (var task in validtasks)
+			if (tasks.Pop(EditorTasks.TilesPickerUpdate, out task))
 			{
-				if (task.Type == EditorTasks.TilesPickerUpdate)
-				{
-					lastSelection = task.Value;
-					tasks.Remove(task);
-				}
-				else if (task.Type == EditorTasks.UpdatePlacedTilesOverlay)
-				{
-					placedOptions = overworld.GetOwBytes().ToList().Intersect(requiredTiles).Select(t => (int)t).ToList();
-					unplacedOptions = requiredTiles.Select(t => (int)t).Except(placedOptions).ToList();
-					tasks.Remove(task);
-				}
+				lastSelection = task.Value;
+			}
+
+			if (tasks.Pop(EditorTasks.UpdatePlacedTilesOverlay, out task))
+			{
+				placedOptions = overworld.GetOwBytes().ToList().Intersect(TileInfo.Required).Select(t => (int)t).ToList();
+				unplacedOptions = TileInfo.Required.Select(t => (int)t).Except(placedOptions).ToList();
 			}
 		}
 		public void UpdateTile(byte tile)
 		{
 			lastSelection = tile;
 		}
-		private List<byte> requiredTiles = new()
-		{
-			0x01,
-			0x02,
-			0x0E,
-			0x1B,
-			0x1C,
-			0x1D,
-			0x29,
-			0x2A,
-			0x2B,
-			0x2F,
-			0x32,
-			0x34,
-			0x35,
-			0x36,
-			0x37,
-			0x38,
-			0x39,
-			0x3A,
-			0x46,
-			0x49,
-			0x4A,
-			0x4C,
-			0x4D,
-			0x4E,
-			0x57,
-			0x58,
-			0x5A,
-			0x5D,
-			0x64,
-			0x65,
-			0x66,
-			0x67,
-			0x68,
-			0x69,
-			0x6A,
-			0x6C,
-			0x6D,
-			0x6E
-		};
 		public List<string> GetUnplacedTiles()
 		{
-			return unplacedOptions.Select(t => TileNames[t]).ToList();
+			return unplacedOptions.Select(t => TileInfo.Names[t]).ToList();
 		}
-		private List<string> TileNames = new()
+	}
+
+	public static class TileInfo
+	{
+		public static List<string> Names = new()
 		{
 			"LAND",
 			"CONERIA_CASTLE_ENTRANCE_W",
@@ -306,5 +263,46 @@ namespace FFRMapEditorMono
 			"CITY_WALL_SE2",
 		};
 
+		public static List<byte> Required = new()
+		{
+			0x01,
+			0x02,
+			0x0E,
+			0x1B,
+			0x1C,
+			0x1D,
+			0x29,
+			0x2A,
+			0x2B,
+			0x2F,
+			0x32,
+			0x34,
+			0x35,
+			0x36,
+			0x37,
+			0x38,
+			0x39,
+			0x3A,
+			0x46,
+			0x49,
+			0x4A,
+			0x4C,
+			0x4D,
+			0x4E,
+			0x57,
+			0x58,
+			0x5A,
+			0x5D,
+			0x64,
+			0x65,
+			0x66,
+			0x67,
+			0x68,
+			0x69,
+			0x6A,
+			0x6C,
+			0x6D,
+			0x6E
+		};
 	}
 }

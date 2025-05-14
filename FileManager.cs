@@ -12,6 +12,8 @@ using System.Reflection.Metadata;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
+using FFRMapEditorMono.MysticQuest;
+using FFRMapEditorMono.FFR;
 
 namespace FFRMapEditorMono
 {
@@ -25,6 +27,17 @@ namespace FFRMapEditorMono
 		Trigger = 0,
 		Disabled
 	}
+	public enum WriteFormat
+	{ 
+		Binary,
+		Json
+	}
+	public enum GameMode
+	{ 
+		FFR,
+		FFMQ
+	}
+
 	public struct Setting
 	{ 
 		public string Name { get; set; }
@@ -103,107 +116,336 @@ namespace FFRMapEditorMono
 	
 	public class FileManager
 	{
-		private string LoadedMapPath;
-		private string LoadedMapName;
+		protected string LoadedMapPath;
+		protected string LoadedMapName;
+		protected string FileFilter;
+		private GameMode ManagerMode;
+		public JsonMap MapDataMQ { get; set; }
+		public OwMapExchangeData MapDataFF { get; set; }
 		public bool FilenameUpdated { get; set; }
-		public OwMapExchangeData OverworldData { get; set; }
+		//public virtual object MapData { get; set; }
 		public SettingsManager Settings { get; set; }
-		public FileManager()
+		public FileManager(GameMode _mode)
 		{
 			LoadedMapPath = "";
-			LoadedMapName = "";
+			LoadedMapName = "New Map";
 			FilenameUpdated = false;
-			OverworldData = new();
 			Settings = new();
-		}
-		public void ProcessTasks(Overworld overworld, List<string> missingTiles, List<EditorTask> tasks)
-		{
-			var validtask = tasks.ToList();
-			bool filesaved = false;
+			ManagerMode = _mode;
+			MapDataMQ = new();
+			MapDataFF = new();
 
-			foreach (var task in validtask)
+			if (ManagerMode == GameMode.FFR)
 			{
-				if (task.Type == EditorTasks.FileCreateNewMap)
-				{
-					if (task.Value == (int)WarningSetting.Trigger && overworld.UnsavedChanges)
-					{
-						tasks.Add(new EditorTask() { Type = EditorTasks.NewMapWarningOpen });
-						tasks.Remove(task);
-					}
-					else
-					{
-						OverworldData = new();
-						LoadedMapName = "";
-						LoadedMapPath = "";
-						tasks.Remove(task);
-						tasks.Add(new EditorTask() { Type = EditorTasks.OverworldBlueMap });
-						tasks.Add(new EditorTask() { Type = EditorTasks.ResetBackupCounter });
-					}
-				}
-				else if (task.Type == EditorTasks.FileLoadMap)
-				{
-					if (task.Value == (int)WarningSetting.Trigger && overworld.UnsavedChanges)
-					{
-						tasks.Add(new EditorTask() { Type = EditorTasks.LoadMapWarningOpen });
-						tasks.Remove(task);
-					}
-					else
-					{
-						bool fileLoaded = OpenFile();
-						if (fileLoaded)
-						{
-							tasks.Add(new EditorTask() { Type = EditorTasks.OverworldLoadMap });
-							tasks.Add(new EditorTask() { Type = EditorTasks.ResetBackupCounter });
-						}
-						tasks.Remove(task);
-					}
-				}
-				else if (task.Type == EditorTasks.FileSaveMap)
-				{
-					var missingStuff = overworld.ValidateObjects();
-					if (missingTiles.Any() || !missingStuff.defaultdock || missingStuff.missingmapobjects.Any())
-					{
-						tasks.Add(new EditorTask() { Type = EditorTasks.SaveWarningOpen });
-						tasks.Add(new EditorTask() { Type = EditorTasks.SaveWarningUpdate, Value = task.Value });
-					}
-					else
-					{
-						tasks.Add(new EditorTask() { Type = EditorTasks.SaveNoWarning, Value = task.Value });
-					}
+				FileFilter = "FFR Json Overworld Map (*.json)|*.json|FFHackster Overworld Map (*.ffm)|*.ffm|All files (*.*)|*.*";
+			}
+			else if (ManagerMode == GameMode.FFMQ)
+			{
+				FileFilter = "FFMQ Json Map (*.json)|*.json|All files (*.*)|*.*";
+			}
 
-					tasks.Remove(task);
+		}
+		public virtual void ResetMapData()
+		{
+			if (ManagerMode == GameMode.FFR)
+			{
+				MapDataFF = new();
+			}
+			else if (ManagerMode == GameMode.FFMQ)
+			{
+				MapDataMQ = new();
+			}
+		}
+		public virtual void LoadMapData(CanvasFFR canvas)
+		{
+			MapDataFF.EncodeMap(canvas);
+		}
+		public virtual void LoadMapData(CanvasMQ canvas)
+		{
+			MapDataMQ = canvas.ExportJsonMap();
+		}
+		public virtual void LoadMapData(string json)
+		{
+			if (ManagerMode == GameMode.FFR)
+			{
+				MapDataFF = JsonSerializer.Deserialize<OwMapExchangeData>(json);
+			}
+			else if (ManagerMode == GameMode.FFMQ)
+			{
+				MapDataMQ = new(json);
+			}
+		}
+		public virtual string GetJsonString()
+		{
+			if (ManagerMode == GameMode.FFR)
+			{
+				return JsonSerializer.Serialize<OwMapExchangeData>(MapDataFF, new JsonSerializerOptions { WriteIndented = true });
+			}
+			else if (ManagerMode == GameMode.FFMQ)
+			{
+				return MapDataMQ.ToJson();
+			}
+			else
+			{
+				return "";
+			}
+		}
+		public virtual WriteFormat GetFileFormat(int index)
+		{
+			if (ManagerMode == GameMode.FFR)
+			{
+				var filename = LoadedMapName.Split('.');
+
+				if (index == 0)
+				{
+					if (filename.Last() == "ffm")
+					{
+						return WriteFormat.Binary;
+					}
+					else
+					{
+						return WriteFormat.Json;
+					}
 				}
-				else if (task.Type == EditorTasks.SaveNoWarning && task.Value == (int)SavingMode.Save)
+				else if (index == 2)
+				{
+					return WriteFormat.Binary;
+				}
+				else
+				{
+					return WriteFormat.Json;
+				}
+			}
+			else if (ManagerMode == GameMode.FFMQ)
+			{
+				return WriteFormat.Json;
+			}
+			else
+			{
+				return WriteFormat.Json;
+			}
+		}
+		public virtual void WriteFile(Stream file, WriteFormat format)
+		{
+			if (ManagerMode == GameMode.FFR)
+			{
+				if (format == WriteFormat.Binary)
+				{
+					using var stream = new BinaryWriter(file);
+					stream.Write(MapDataFF.DecodeMap());
+				}
+				else
+				{
+					string serializedOwData = JsonSerializer.Serialize<OwMapExchangeData>(MapDataFF, new JsonSerializerOptions { WriteIndented = true });
+					using var stream = new StreamWriter(file);
+					stream.Write(serializedOwData);
+				}
+			}
+			else if (ManagerMode == GameMode.FFMQ)
+			{
+				string serializedOwData = GetJsonString();
+				using var stream = new StreamWriter(file);
+				stream.Write(serializedOwData);
+			}
+		}
+		public virtual void ReadFile(Stream file, WriteFormat format)
+		{
+			if (ManagerMode == GameMode.FFR)
+			{
+				if (format == WriteFormat.Binary)
+				{
+					using var stream = new BinaryReader(file);
+					var dataarray = stream.ReadBytes(0x10000);
+
+					MapDataFF = new();
+					MapDataFF.EncodeMapFromBytes(dataarray);
+				}
+				else
+				{
+					using var stream = new StreamReader(file);
+					var jsonstring = stream.ReadToEnd();
+
+					MapDataFF = JsonSerializer.Deserialize<OwMapExchangeData>(jsonstring);
+				}
+			}
+			else if (ManagerMode == GameMode.FFMQ)
+			{
+				using var stream = new StreamReader(file);
+				var jsonstring = stream.ReadToEnd();
+				LoadMapData(jsonstring);
+			}
+		}
+		private void ProcessTasksFF(CanvasFFR map, TaskManager tasks)
+		{
+			bool filesaved = false;
+			EditorTask task;
+
+			if (tasks.Pop(EditorTasks.FileCreateNewMap, out task))
+			{
+				if (task.Value == (int)WarningSetting.Trigger && map.UnsavedChanges)
+				{
+					tasks.Add(EditorTasks.NewMapWarningOpen);
+				}
+				else
+				{
+					ResetMapData();
+					LoadedMapName = "New Map";
+					LoadedMapPath = "";
+					tasks.Add(EditorTasks.OverworldBlueMap);
+					tasks.Add(EditorTasks.ResetBackupCounter);
+				}
+			}
+
+			if (tasks.Pop(EditorTasks.FileSaveMap, out task))
+			{
+				if (map.MissingMapObjects.Any() || !map.DefaultDockPlaced || map.MissingRequiredTiles.Any())
+				{
+					tasks.Add(new EditorTask(EditorTasks.SaveWarningOpen));
+					tasks.Add(new EditorTask(EditorTasks.SaveWarningUpdate, task.Value));
+				}
+				else
+				{
+					tasks.Add(new EditorTask(EditorTasks.SaveNoWarning, task.Value));
+				}
+			}
+
+			if (tasks.Pop(EditorTasks.FileLoadMap, out task))
+			{
+				if (task.Value == (int)WarningSetting.Trigger && map.UnsavedChanges)
+				{
+					tasks.Add(EditorTasks.LoadMapWarningOpen);
+				}
+				else
+				{
+					bool fileLoaded = OpenFile();
+					if (fileLoaded)
+					{
+						tasks.Add(EditorTasks.OverworldLoadMap);
+						tasks.Add(EditorTasks.ResetBackupCounter);
+					}
+				}
+			}
+
+			if (tasks.Pop(EditorTasks.SaveNoWarning, out task))
+			{
+				if (task.Value == (int)SavingMode.Save)
 				{
 					if (FileSelected())
 					{
-						OverworldData.EncodeMap(overworld);
+						LoadMapData(map);
 						filesaved = SaveFile();
 					}
 					else
 					{
-						OverworldData.EncodeMap(overworld);
+						LoadMapData(map);
 						filesaved = SaveFileAs();
 					}
-					tasks.Remove(task);
 				}
-				else if (task.Type == EditorTasks.SaveNoWarning && task.Value == (int)SavingMode.SaveAs)
+				else if (task.Value == (int)SavingMode.SaveAs)
 				{
-					OverworldData.EncodeMap(overworld);
+					LoadMapData(map);
 					filesaved = SaveFileAs();
-					tasks.Remove(task);
 				}
-				else if (task.Type == EditorTasks.SaveBackupMap)
-				{
-					OverworldData.EncodeMap(overworld);
-					SaveBackup();
-					tasks.Remove(task);
-				}
+			}
+
+			if (tasks.Pop(EditorTasks.SaveBackupMap, out task))
+			{
+				LoadMapData(map);
+				SaveBackup();
 			}
 
 			if (filesaved)
 			{
-				overworld.UnsavedChanges = false;
+				map.UnsavedChanges = false;
+			}
+		}
+
+		private void ProcessTasksMQ(CanvasMQ map, TaskManager tasks)
+		{
+			bool filesaved = false;
+			EditorTask task;
+
+			if (tasks.Pop(EditorTasks.FileCreateNewMap, out task))
+			{
+				if (task.Value == (int)WarningSetting.Trigger && map.UnsavedChanges)
+				{
+					tasks.Add(EditorTasks.NewMapWarningOpen);
+				}
+				else
+				{
+					ResetMapData();
+					LoadedMapName = "New Map";
+					LoadedMapPath = "";
+					tasks.Add(EditorTasks.OverworldBlueMap);
+					tasks.Add(EditorTasks.ResetBackupCounter);
+				}
+			}
+
+			if (tasks.Pop(EditorTasks.FileSaveMap, out task))
+			{
+				tasks.Add(new EditorTask(EditorTasks.SaveNoWarning, task.Value));
+			}
+
+			if (tasks.Pop(EditorTasks.FileLoadMap, out task))
+			{
+				if (task.Value == (int)WarningSetting.Trigger && map.UnsavedChanges)
+				{
+					tasks.Add(EditorTasks.LoadMapWarningOpen);
+				}
+				else
+				{
+					bool fileLoaded = OpenFile();
+					if (fileLoaded)
+					{
+						tasks.Add(EditorTasks.OverworldLoadMap);
+						tasks.Add(EditorTasks.ResetBackupCounter);
+					}
+				}
+			}
+
+			if (tasks.Pop(EditorTasks.SaveNoWarning, out task))
+			{
+				if (task.Value == (int)SavingMode.Save)
+				{
+					if (FileSelected())
+					{
+						LoadMapData(map);
+						filesaved = SaveFile();
+					}
+					else
+					{
+						LoadMapData(map);
+						filesaved = SaveFileAs();
+					}
+				}
+				else if (task.Value == (int)SavingMode.SaveAs)
+				{
+					LoadMapData(map);
+					filesaved = SaveFileAs();
+				}
+			}
+
+			if (tasks.Pop(EditorTasks.SaveBackupMap, out task))
+			{
+				LoadMapData(map);
+				SaveBackup();
+			}
+
+			if (filesaved)
+			{
+				map.UnsavedChanges = false;
+			}
+		}
+
+		public virtual void ProcessTasks(CanvasFFR mapFF, CanvasMQ mapMQ, TaskManager tasks)
+		{
+			if (ManagerMode == GameMode.FFR)
+			{
+				ProcessTasksFF(mapFF, tasks);
+			}
+			else if (ManagerMode == GameMode.FFMQ)
+			{
+				ProcessTasksMQ(mapMQ, tasks);
 			}
 		}
 		public string GetFileName()
@@ -216,7 +458,7 @@ namespace FFRMapEditorMono
 			var t = new Thread((ThreadStart)(() => {
 				OpenFileDialog fbd = new OpenFileDialog();
 				fbd.InitialDirectory = System.Environment.SpecialFolder.MyComputer.ToString();
-				fbd.Filter = "FFR Json Overworld Map (*.json)|*.json|FFHackster Overworld Map (*.ffm)|*.ffm|All files (*.*)|*.*";
+				fbd.Filter = FileFilter;
 				fbd.FilterIndex = 1;
 				fbd.RestoreDirectory = true;
 				result = fbd.ShowDialog();
@@ -225,24 +467,9 @@ namespace FFRMapEditorMono
 					var splittedFileName = fbd.FileName.Split('\\');
 					LoadedMapPath = String.Join('\\', splittedFileName.Take(splittedFileName.Length - 1));
 					LoadedMapName = splittedFileName.Last();
-					var filname = LoadedMapName.Split('.');
 
-					if (filname.Last() == "ffm")
-					{
-						using var stream = new BinaryReader(fbd.OpenFile());
-							var dataarray = stream.ReadBytes(0x10000);
-
-						OverworldData = new();
-						OverworldData.EncodeMapFromBytes(dataarray);
-					}
-					else
-					{
-						using var stream = new StreamReader(fbd.OpenFile());
-							var jsonstring = stream.ReadToEnd();
-
-						OverworldData = JsonSerializer.Deserialize<OwMapExchangeData>(jsonstring);
-					}
-
+					var writeformat = GetFileFormat(0);
+					ReadFile(fbd.OpenFile(), writeformat);
 					FilenameUpdated = true;
 				}
 			}));
@@ -271,24 +498,18 @@ namespace FFRMapEditorMono
 				SaveFileDialog fbd = new SaveFileDialog();
 				fbd.FileName = LoadedMapName;
 				fbd.InitialDirectory = existingpath ? LoadedMapPath : System.Environment.SpecialFolder.MyComputer.ToString();
-				fbd.Filter = "FFR Json Overworld Map (*.json)|*.json|FFHackster Overworld Map (*.ffm)|*.ffm|All files (*.*)|*.*";
+				fbd.Filter = FileFilter;
 				fbd.FilterIndex = 1;
 				fbd.RestoreDirectory = true;
 				result = fbd.ShowDialog();
 				if (result == DialogResult.OK)
 				{
-					if (fbd.FilterIndex == 2)
-					{
-						using var stream = new BinaryWriter(fbd.OpenFile());
-							stream.Write(OverworldData.DecodeMap());
-					}
-					else
-					{
-						string serializedOwData = JsonSerializer.Serialize<OwMapExchangeData>(OverworldData, new JsonSerializerOptions { WriteIndented = true });
-						using var stream = new StreamWriter(fbd.OpenFile());
-							stream.Write(serializedOwData);
-					}
+					var writeformat = GetFileFormat(fbd.FilterIndex);
+					WriteFile(fbd.OpenFile(), writeformat);
+
 					filesaved = true;
+					var splittedFileName = fbd.FileName.Split('\\');
+					LoadedMapName = splittedFileName.Last();
 					FilenameUpdated = true;
 				}
 			}));
@@ -301,25 +522,14 @@ namespace FFRMapEditorMono
 		}
 		public bool SaveFile()
 		{
-			var filname = LoadedMapName.Split('.');
-
-			if (filname.Last() == "ffm")
-			{
-				using var stream = new BinaryWriter(new FileStream(LoadedMapPath + "\\" + LoadedMapName, FileMode.OpenOrCreate));
-					stream.Write(OverworldData.DecodeMap());
-			}
-			else
-			{
-				string serializedOwData = JsonSerializer.Serialize<OwMapExchangeData>(OverworldData, new JsonSerializerOptions { WriteIndented = true });
-				using var stream = new StreamWriter(LoadedMapPath + "\\" + LoadedMapName);
-					stream.Write(serializedOwData);
-			}
+			var writeformat = GetFileFormat(0);
+			WriteFile(new FileStream(LoadedMapPath + "\\" + LoadedMapName, FileMode.OpenOrCreate), writeformat);
 
 			return true;
 		}
 		public bool SaveBackup()
 		{
-			string serializedOwData = JsonSerializer.Serialize<OwMapExchangeData>(OverworldData, new JsonSerializerOptions { WriteIndented = true });
+			string serializedOwData = GetJsonString();
 			using var stream = new StreamWriter("backupowmap.json");
 			stream.Write(serializedOwData);
 
@@ -327,7 +537,7 @@ namespace FFRMapEditorMono
 		}
 		public bool FileSelected()
 		{
-			return LoadedMapName != "";
+			return LoadedMapName != "New Map";
 		}
 		public void SaveSettings()
 		{

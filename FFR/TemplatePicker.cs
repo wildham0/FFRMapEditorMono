@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 
-namespace FFRMapEditorMono
+namespace FFRMapEditorMono.FFR
 {
 	public enum Templates
 	{ 
@@ -46,10 +46,10 @@ namespace FFRMapEditorMono
 			lastSelection = 0x00;
 			options = templatesNames.Select((t, i) => (t,
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.TemplatesUpdate, Value = i },
-					new EditorTask() { Type = EditorTasks.WindowsClose, Value = 10 } },
+					new EditorTask(EditorTasks.TemplatesUpdate, i),
+					new EditorTask(EditorTasks.WindowsClose, 10) },
 				new List<EditorTask>() {
-					new EditorTask() { Type = EditorTasks.TemplatesUpdate, Value = i } }
+					new EditorTask(EditorTasks.TemplatesUpdate, i) }
 				)).ToList();
 
 			placedOptions = new();
