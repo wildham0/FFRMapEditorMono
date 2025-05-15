@@ -103,8 +103,8 @@ namespace FFRMapEditorMono
 			}
 			else
 			{
-				SetBackupDelay(defaultUndoDepth);
-				return defaultUndoDepth * 60 * 60;
+				SetBackupDelay(defaultDelayForBackup);
+				return defaultDelayForBackup * 60 * 60;
 			}
 		}
 		public void SetBackupDelay(int minutes)

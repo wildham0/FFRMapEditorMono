@@ -24,6 +24,13 @@ namespace FFRMapEditorMono
 
 	public class Canvas
 	{
+		protected GraphicsDevice graphicsDevice;
+		protected SpriteBatch spriteBatch;
+		protected MouseState mouse;
+		protected KeyboardState keyboard;
+		protected FileManager fileManager;
+		protected TaskManager taskManager;
+
 		public Texture2D TileSet { get; set; }
 		protected RenderTarget2D mapTexture;
 		protected byte[] mapCanvas { get => targetMaps[owMapCurrentTarget]; }
@@ -34,9 +41,7 @@ namespace FFRMapEditorMono
 		protected int MapSizeX;
 		protected int MapSizeY;
 		protected PositionIndicatorMode positionMode;
-		protected GraphicsDevice graphicsDevice;
-		protected SpriteBatch spriteBatch;
-		protected MouseState mouse;
+
 		protected int owMapCurrentTarget;
 		protected int owMapBackSteps;
 		protected int owMapForwardSteps;
@@ -44,64 +49,50 @@ namespace FFRMapEditorMono
 		protected bool currentlyDrawing;
 		protected bool currentlySelecting;
 		protected List<byte[]> targetMaps;
-		//private JsonMap jsonMapData;
-		//private OwMapExchangeData exchMapData;
-		//private object mapData;
-		protected FileManager fileManager;
+		
 		protected byte[,] pasteBin;
 		protected Selector selector;
 
 		protected Point currentTileCoordinates => new Point((int)(mouse.Position.X - viewOffset.X) / (int)(16 * Zoom), (int)(mouse.Position.Y - viewOffset.Y) / (int)(16 * Zoom));
 		protected Point previousTileCoordinates;
-
-		//private List<List<(int id, OwEncounterGroup group)>> targetDomains;
-
-		//public bool UpdatePlacedMapObjects { get; set; }
-		//public bool UpdatePlacedDocks { get; set; }
-		//public bool UpdatePlacedRequiredTiles { get; set; }
 		public bool UnsavedChanges { get; set; }
-		public Canvas(Dictionary<string, Texture2D> _textures, SpriteFont _font, GraphicsDevice _graphicsDevice, SpriteBatch _spriteBatch, FileManager _fileManager, MouseState _mouse)
+		public Canvas(Dictionary<string, Texture2D> _textures, SpriteFont _font, GraphicsDevice _graphicsDevice, SpriteBatch _spriteBatch, FileManager _fileManager, TaskManager _taskmanager, MouseState _mouse, KeyboardState _keyboard)
 		{
-			BaseInitialization(_textures, _font, _graphicsDevice, _spriteBatch, _fileManager, _mouse);
+			BaseInitialization(_textures, _font, _graphicsDevice, _spriteBatch, _fileManager, _taskmanager, _mouse, _keyboard);
 		}
-		public void BaseInitialization(Dictionary<string, Texture2D> _textures, SpriteFont _font, GraphicsDevice _graphicsDevice, SpriteBatch _spriteBatch, FileManager _fileManager, MouseState _mouse)
+		public void BaseInitialization(Dictionary<string, Texture2D> _textures, SpriteFont _font, GraphicsDevice _graphicsDevice, SpriteBatch _spriteBatch, FileManager _fileManager, TaskManager _taskmanager, MouseState _mouse, KeyboardState _keyboard)
 		{
-			//Texture2D _tileset, , Texture2D _domaingroups, Texture2D _docks, Texture2D _mapobjects,
-			fileManager = _fileManager;
+			// Globals
 			graphicsDevice = _graphicsDevice;
 			spriteBatch = _spriteBatch;
-			//tileSet = _textures["tileset"];
+
+			fileManager = _fileManager;
+			taskManager = _taskmanager;
+			mouse = _mouse;
+			keyboard = _keyboard;
+			font = _font;
+
+			// Parameters
 			owMapCurrentTarget = 0;
 			owMapBackSteps = 0;
 			owMapForwardSteps = 0;
-			mouse = _mouse;
+
 			GridSize = 32;
 			MapSizeX = 256;
 			MapSizeY = 256;
 			currentlyDrawing = false;
 			currentlySelecting = false;
-			selector = new Selector();
-			//domainGroupIcons = _domaingroups;
-			//docksIcons = _docks;
-			//mapObjectsIcons = _mapobjects;
-			owMapUndoDepth = _fileManager.Settings.GetUndoDepth();
-			targetMaps = Enumerable.Range(0, owMapUndoDepth + 1).Select(i => new byte[MapSizeX * MapSizeY]).ToList();
-			//docks = new();
-			//mapObjects = new();
-			mapTexture = new(graphicsDevice, 4096, 4096, true, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
-			//domains = Enumerable.Range(0, 64).Select(x => (x, OwEncounterGroup.OopsAllImpsGroup)).ToList();
-			//DefineSmarthBrushes();
-			//BlueMap();
-
 			viewOffset = new(0, 0);
-			font = _font;
 			Zoom = 1.0f;
 			positionMode = PositionIndicatorMode.None;
-
-			//currentTileCoordinates = new Point(0, 0);
 			previousTileCoordinates = new Point(currentTileCoordinates.X, currentTileCoordinates.Y);
-
 			UnsavedChanges = false;
+
+			// Initialize
+			selector = new Selector();
+			owMapUndoDepth = _fileManager.Settings.GetUndoDepth();
+			targetMaps = Enumerable.Range(0, owMapUndoDepth + 1).Select(i => new byte[MapSizeX * MapSizeY]).ToList();
+			mapTexture = new(graphicsDevice, 4096, 4096, true, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
 		}
 		protected void CreateBackup()
 		{
@@ -141,7 +132,7 @@ namespace FFRMapEditorMono
 				tasks.Add(new EditorTask(EditorTasks.InfoBoxUpdateCoordinates, currentTileCoordinates.Y * 256 + currentTileCoordinates.X));
 			}
 		}
-		public virtual void Copy(CurrentTool tool, TaskManager taskManager)
+		public virtual void Copy(CurrentTool tool)
 		{
 
 			if (!taskManager.Pop(EditorTasks.Copy) || (tool.Tool != ToolAction.Selector))
@@ -178,7 +169,7 @@ namespace FFRMapEditorMono
 				}
 			}
 		}
-		public void Paste(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, MouseState mouse, Point windowSize, CurrentTool tool, TaskManager tasks)
+		public void Paste(Point windowSize, CurrentTool tool)
 		{
 			if (!mouse.LeftDown && !mouse.LeftClick || tool.Tool != ToolAction.Paster)
 			{
@@ -232,7 +223,7 @@ namespace FFRMapEditorMono
 
 			graphicsDevice.SetRenderTarget(null);
 
-			tasks.Add(EditorTasks.RestoreTool);
+			taskManager.Add(EditorTasks.RestoreTool);
 			UnsavedChanges = true;
 		}
 		public virtual void Redo()
@@ -254,32 +245,32 @@ namespace FFRMapEditorMono
 
 		public virtual void LoadData() { }
 
-		public virtual void ProcessTasks(TaskManager tasks)
+		public virtual void ProcessTasks()
 		{
 			EditorTask task;
 
-			if (tasks.Pop(EditorTasks.OverworldLoadMap, out task))
+			if (taskManager.Pop(EditorTasks.OverworldLoadMap, out task))
 			{
 				LoadData();
-				tasks.Add(EditorTasks.ReloadPicker);
+				taskManager.Add(EditorTasks.ReloadPicker);
 			}
 
-			if (tasks.Pop(EditorTasks.OverworldBlueMap, out task))
+			if (taskManager	.Pop(EditorTasks.OverworldBlueMap, out task))
 			{
 				BlueMap();
 			}
 
-			if (tasks.Pop(EditorTasks.PaintingUndo, out task))
+			if (taskManager.Pop(EditorTasks.PaintingUndo, out task))
 			{
 				Undo();
 			}
 
-			if (tasks.Pop(EditorTasks.PaintingRedo, out task))
+			if (taskManager.Pop(EditorTasks.PaintingRedo, out task))
 			{
 				Redo();
 			}
 
-			if (tasks.Pop(EditorTasks.UpdateGridsize, out task))
+			if (taskManager.Pop(EditorTasks.UpdateGridsize, out task))
 			{
 				GridSize *= 2;
 				if (GridSize >= MapSizeX || GridSize >= MapSizeY)
@@ -288,7 +279,7 @@ namespace FFRMapEditorMono
 				}
 			}
 
-			if (tasks.Pop(EditorTasks.TogglePositionIndicator, out task))
+			if (taskManager.Pop(EditorTasks.TogglePositionIndicator, out task))
 			{
 				positionMode++;
 
@@ -321,7 +312,7 @@ namespace FFRMapEditorMono
 
 			viewOffset = new(-(targetx * (int)(16 * Zoom) - windowSize.X / 2), -(targety * (int)(16 * Zoom) - windowSize.Y / 2));
 		}
-		public void UpdateZoom(MouseState mouse, Point windowSize)
+		public void UpdateZoom(Point windowSize)
 		{
 			if (mouse.ScrollUp && Zoom < 4.0f)
 			{
@@ -346,7 +337,7 @@ namespace FFRMapEditorMono
 		{
 			return new OwMapExchangeData();
 		}
-		public virtual void Selector(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, MouseState mouse, Point windowSize, CurrentTool tool)
+		public virtual void Selector(Point windowSize, CurrentTool tool)
 		{
 			if (tool.Tool != ToolAction.Selector)
 			{
@@ -394,7 +385,7 @@ namespace FFRMapEditorMono
 			}
 		}
 
-		public virtual void UpdateTile(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, MouseState mouse, Point windowSize, CurrentTool tool)
+		public virtual void UpdateTile(Point windowSize, CurrentTool tool)
 		{
 			if ((!mouse.LeftDown && !mouse.LeftClick) || ((tool.Tool != ToolAction.Pencil && tool.Tool != ToolAction.Brush)))
 			{
@@ -467,7 +458,7 @@ namespace FFRMapEditorMono
 		{
 			return tile;
 		}
-		public List<EditorTask> GetTile(MouseState mouse)
+		public List<EditorTask> GetTile()
 		{
 			int targetx = ((int)(mouse.Position.X - viewOffset.X) / (int)(16 * Zoom));
 			int targety = ((int)(mouse.Position.Y - viewOffset.Y) / (int)(16 * Zoom));
@@ -504,58 +495,56 @@ namespace FFRMapEditorMono
 
 			return new Rectangle(tilex * 16, tiley * 16, 16, 16);
 		}
-		public void Draw(SpriteBatch spriteBatch, WindowsManager manager, CurrentTool tool, MouseState mouse, Point windowSize)
+		public void Draw(WindowsManager manager, CurrentTool tool, Point windowSize)
 		{
 			spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
-			DrawMapLayer(spriteBatch, manager, tool, mouse, windowSize);
-			DrawOverlayLayer(spriteBatch, manager, tool, mouse, windowSize);
-			DrawCursorLayer(spriteBatch, manager, tool, mouse, windowSize);
+			DrawMapLayer(manager, tool, windowSize);
+			DrawOverlayLayer(manager, tool, windowSize);
+			DrawCursorLayer(manager, tool, windowSize);
 
 			spriteBatch.End();
 		}
-		public virtual void DrawMapLayer(SpriteBatch spriteBatch, WindowsManager manager, CurrentTool tool, MouseState mouse, Point windowSize)
+		public virtual void DrawMapLayer(WindowsManager manager, CurrentTool tool, Point windowSize)
 		{
 			spriteBatch.Draw(mapTexture, viewOffset, new Rectangle(0, 0, mapTexture.Width, mapTexture.Height), Color.White, 0.0f, new Vector2(0.0f, 0.0f), Zoom, SpriteEffects.None, 0.0f);
 
 			if (manager.ShowGridlines || manager.ShowDomainOverlay)
 			{
-				DrawGrid(spriteBatch, manager.ShowDomainOverlay);
+				DrawGrid(manager.ShowDomainOverlay);
 			}
 		}
-		public virtual void DrawOverlayLayer(SpriteBatch spriteBatch, WindowsManager manager, CurrentTool tool, MouseState mouse, Point windowSize)
+		public virtual void DrawOverlayLayer(WindowsManager manager, CurrentTool tool, Point windowSize)
 		{
-			DrawSelection(spriteBatch, selector.ShowSelection);
+			DrawSelection(selector.ShowSelection);
 		}
-		public virtual void DrawCursorLayer(SpriteBatch spriteBatch, WindowsManager manager, CurrentTool tool, MouseState mouse, Point windowSize)
+		public virtual void DrawCursorLayer(WindowsManager manager, CurrentTool tool, Point windowSize)
 		{
-			DrawBrush(spriteBatch, tool, mouse);
-			DrawPastBin(spriteBatch, tool, mouse);
-			//DrawCoordinate(spriteBatch, windowSize, mouse);
+			DrawBrush(tool);
+			DrawPasteBin(tool);
 		}
-		public void DrawSelection(SpriteBatch spriteBatch, bool enabled)
+		public void DrawSelection(bool enabled)
 		{
 			if (!enabled)
 			{
 				return;
 			}
+
 			Rectangle maparea = selector.GetRectangle();
 			Rectangle drawarea = new Rectangle(0, 0, (int)(maparea.Width * 16), (int)(maparea.Height * 16));
 
-			//spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+			if (maparea.Height <= 1 && maparea.Width <= 1 && !currentlySelecting)
+			{
+				return;
+			}
 
 			// Draw Background
 			Texture2D background = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
 			background.SetData(new[] { Color.DarkSlateGray });
-			//new Vector2(viewOffset.X + (x * gridsize * 16) * Zoom, viewOffset.Y + (y * gridsize * 16) * Zoom)
 			
 			spriteBatch.Draw(background, new Vector2(viewOffset.X + (maparea.Left * 16) * Zoom, viewOffset.Y + (maparea.Top * 16) * Zoom), drawarea, new Color(255, 255, 255, 205), 0.0f, new Vector2(0.0f, 0.0f), Zoom, SpriteEffects.None, 0.0f);
-
-			//spriteBatch.Draw(background, new Vector2(maparea.Left * 16, maparea.Top * 16), drawarea, new Color(255, 255, 255, 205), 0.0f, new Vector2(0.0f, 0.0f), Zoom, SpriteEffects.None, 0.0f);
-
-			//spriteBatch.End();
 		}
-		public void DrawGrid(SpriteBatch spriteBatch, bool showdomains)
+		public void DrawGrid(bool showdomains)
 		{
 			int gridsize = showdomains ? 32 : GridSize;
 
@@ -564,7 +553,6 @@ namespace FFRMapEditorMono
 
 			int liney = MapSizeY / gridsize;
 			int linex = MapSizeX / gridsize;
-
 
 			for (int y = 0; y < liney; y++)
 			{
@@ -578,40 +566,7 @@ namespace FFRMapEditorMono
 			spriteBatch.Draw(line, new Vector2(viewOffset.X + ((linex * gridsize * 16) * Zoom - 2), viewOffset.Y), new Rectangle(0, 0, 2, (int)(MapSizeY * 16 * Zoom)), Color.White);
 			spriteBatch.Draw(line, new Vector2(viewOffset.X, viewOffset.Y + ((liney * gridsize * 16) * Zoom - 2)), new Rectangle(0, 0, (int)(MapSizeX * 16 * Zoom), 2), Color.White);
 		}
-
-		public void DrawCoordinate(SpriteBatch spriteBatch, Point windowSize, MouseState mouse)
-		{
-			int targetx = ((int)(mouse.Position.X - viewOffset.X) / (int)(16 * Zoom));
-			int targety = ((int)(mouse.Position.Y - viewOffset.Y) / (int)(16 * Zoom));
-
-			if (targetx >= MapSizeX || targety >= MapSizeY || targetx < 0 || targety < 0 || (positionMode == PositionIndicatorMode.None))
-			{
-				return;
-			}
-
-			string coordstring = "(" + targetx + ", " + targety + ")";
-
-			float positionx;
-			float positiony;
-
-			if (positionMode == PositionIndicatorMode.Cursor)
-			{
-				positionx = mouse.Position.X + 32;
-				positiony = mouse.Position.Y;
-			}
-			else
-			{
-				positionx = 16;
-				positiony = windowSize.Y - 32;
-			}
-
-			spriteBatch.DrawString(font, coordstring, new Vector2(positionx - 1, positiony), Color.Black);
-			spriteBatch.DrawString(font, coordstring, new Vector2(positionx + 1, positiony), Color.Black);
-			spriteBatch.DrawString(font, coordstring, new Vector2(positionx, positiony - 1), Color.Black);
-			spriteBatch.DrawString(font, coordstring, new Vector2(positionx, positiony + 1), Color.Black);
-			spriteBatch.DrawString(font, coordstring, new Vector2(positionx, positiony), Color.White);
-		}
-		public void DrawBrush(SpriteBatch spriteBatch, CurrentTool tool, MouseState mouse)
+		public void DrawBrush(CurrentTool tool)
 		{
 			if (tool.Tool != ToolAction.Brush && tool.Tool != ToolAction.Pencil)
 			{
@@ -638,7 +593,7 @@ namespace FFRMapEditorMono
 				}
 			}
 		}
-		public void DrawPastBin(SpriteBatch spriteBatch, CurrentTool tool, MouseState mouse)
+		public void DrawPasteBin(CurrentTool tool)
 		{
 			if (tool.Tool != ToolAction.Paster)
 			{

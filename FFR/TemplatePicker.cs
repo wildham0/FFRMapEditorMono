@@ -30,11 +30,10 @@ namespace FFRMapEditorMono.FFR
 	public class TemplatePicker : OptionPicker
 	{
 		public byte[,] CurrentTemplate { get => templates[lastSelection]; }
-		public TemplatePicker(Texture2D _window, Texture2D _selector, SpriteFont _font)
+		public TemplatePicker(Texture2D _window, Texture2D _selector, SpriteFont _font, SpriteBatch _spriteBatch, TaskManager _tasks, MouseState _mouse) : base(_font, _spriteBatch, _tasks, _mouse)
 		{
 			optionsWindow = _window;
 			optionSelector = _selector;
-			optionFont = _font;
 
 			Position = new Vector2(64, 0);
 			zoom = 1.0f;

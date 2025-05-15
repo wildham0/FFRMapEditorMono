@@ -6,18 +6,19 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using System.Text.RegularExpressions;
+using System.Drawing;
 
 namespace FFRMapEditorMono.FFR
 {
 	public class DockPicker : OptionPicker
 	{
 		private CanvasFFR overworld;
-		public DockPicker(Texture2D _window, Texture2D _selector, Texture2D _placedicons, SpriteFont _font, Canvas _overworld)
+		public DockPicker(Texture2D _window, Texture2D _selector, Texture2D _placedicons, Canvas _overworld, SpriteFont _font, SpriteBatch _spriteBatch, TaskManager _tasks, MouseState _mouse) : base(_font, _spriteBatch, _tasks, _mouse)
 		{
 			optionsWindow = _window;
 			optionSelector = _selector;
 			optionIcons = _placedicons;
-			optionFont = _font;
+
 			overworld = (CanvasFFR)_overworld;
 
 			Position = new Vector2(64, 0);
@@ -40,11 +41,11 @@ namespace FFRMapEditorMono.FFR
 			SetOptionTextLength();
 			showPlaced = true;
 		}
-		public override void ProcessTasks(TaskManager tasks)
+		public override void ProcessTasks()
 		{
 			EditorTask task;
 
-			if (tasks.Pop(EditorTasks.UpdatePlacedDocksOverlay, out task))
+			if (taskManager.Pop(EditorTasks.UpdatePlacedDocksOverlay, out task))
 			{
 				placedOptions = overworld.GetShipData().Select(d => (int)d.TeleporterIndex).ToList();
 				if (placedOptions.Contains((int)OverworldTeleportIndex.None))

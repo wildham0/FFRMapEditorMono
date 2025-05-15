@@ -5,21 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
+using System.Drawing;
 
 namespace FFRMapEditorMono.FFR
 {
 	public class MapObjectPicker : OptionPicker
 	{
 		private CanvasFFR overworld;
-		public MapObjectPicker(Texture2D _window, Texture2D _selector, Texture2D _placingicons, SpriteFont _font, Canvas _overworld)
+		public MapObjectPicker(Texture2D _window, Texture2D _selector, Texture2D _placingicons, Canvas _overworld, SpriteFont _font, SpriteBatch _spriteBatch, TaskManager _tasks, MouseState _mouse) : base(_font, _spriteBatch, _tasks, _mouse)
 		{
 			optionsWindow = _window;
 			optionSelector = _selector;
 			optionIcons = _placingicons;
-			optionFont = _font;
+
 
 			overworld = (CanvasFFR)_overworld;
-
 			Position = new Vector2(64, 0);
 			zoom = 2.0f;
 			optionsRows = 1;
@@ -50,11 +50,11 @@ namespace FFRMapEditorMono.FFR
 			("Ship (Unused)", EditorTasks.None, EditorTasks.None),
 			("Airship", EditorTasks.None, EditorTasks.None),
 		};
-		public override void ProcessTasks(TaskManager tasks)
+		public override void ProcessTasks()
 		{
 			EditorTask task;
 
-			if (tasks.Pop(EditorTasks.UpdatePlacedObjectsOverlay, out task))
+			if (taskManager.Pop(EditorTasks.UpdatePlacedObjectsOverlay, out task))
 			{
 				placedOptions = overworld.GetPlacedMapObjects().Select(o => (int)o).ToList();
 			}

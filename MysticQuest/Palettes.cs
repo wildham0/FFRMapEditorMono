@@ -21,7 +21,6 @@ namespace FFRMapEditorMono.MysticQuest
 	}
 	class MapPalettes
 	{
-		private string palettesData;
 		public List<List<Microsoft.Xna.Framework.Color>> Palettes;
 
 		public MapPalettes()

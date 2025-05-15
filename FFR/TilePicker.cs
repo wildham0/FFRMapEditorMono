@@ -10,11 +10,10 @@ namespace FFRMapEditorMono.FFR
 {
 	public class BrushPicker : OptionPicker
 	{
-		public BrushPicker(Texture2D _window, Texture2D _selector, SpriteFont _font)
+		public BrushPicker(Texture2D _window, Texture2D _selector, SpriteFont _font, SpriteBatch _spriteBatch, TaskManager _tasks, MouseState _mouse) : base(_font, _spriteBatch, _tasks, _mouse)
 		{
 			optionsWindow = _window;
 			optionSelector = _selector;
-			optionFont = _font;
 			ToggleTask = EditorTasks.BrushesToggle;
 
 			Show = false;
@@ -36,11 +35,11 @@ namespace FFRMapEditorMono.FFR
 			SetOptionTextLength();
 			showPlaced = false;
 		}
-		public override void ProcessTasks(TaskManager tasks)
+		public override void ProcessTasks()
 		{
 			EditorTask task;
 
-			if (tasks.Pop(EditorTasks.BrushesPickerUpdate, out task))
+			if (taskManager.Pop(EditorTasks.BrushesPickerUpdate, out task))
 			{
 				int validselection = 0;
 
@@ -74,12 +73,12 @@ namespace FFRMapEditorMono.FFR
 	public class TilePicker : OptionPicker
 	{
 		private Canvas overworld;
-		public TilePicker(Texture2D _window, Texture2D _selector, Texture2D _placedicons, SpriteFont _font, Canvas _overworld)
+		public TilePicker(Texture2D _window, Texture2D _selector, Texture2D _placedicons, Canvas _overworld, SpriteFont _font, SpriteBatch _spriteBatch, TaskManager _tasks, MouseState _mouse) : base(_font, _spriteBatch, _tasks, _mouse)
 		{
 			optionsWindow = _window;
 			optionSelector = _selector;
 			optionIcons = _placedicons;
-			optionFont = _font;
+
 			overworld = _overworld;
 			ToggleTask = EditorTasks.TilesToggle;
 
@@ -104,16 +103,16 @@ namespace FFRMapEditorMono.FFR
 			unplacedOptions = TileInfo.Required.Select(t => (int)t).ToList();
 			showPlaced = true;
 		}
-		public override void ProcessTasks(TaskManager tasks)
+		public override void ProcessTasks()
 		{
 			EditorTask task;
 
-			if (tasks.Pop(EditorTasks.TilesPickerUpdate, out task))
+			if (taskManager.Pop(EditorTasks.TilesPickerUpdate, out task))
 			{
 				lastSelection = task.Value;
 			}
 
-			if (tasks.Pop(EditorTasks.UpdatePlacedTilesOverlay, out task))
+			if (taskManager.Pop(EditorTasks.UpdatePlacedTilesOverlay, out task))
 			{
 				placedOptions = overworld.GetOwBytes().ToList().Intersect(TileInfo.Required).Select(t => (int)t).ToList();
 				unplacedOptions = TileInfo.Required.Select(t => (int)t).Except(placedOptions).ToList();

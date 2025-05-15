@@ -14,32 +14,21 @@ using FFRMapEditorMono.FFR;
 
 namespace FFRMapEditorMono.MysticQuest
 {
-
 	public class MQEditorMode: EditorMode
 	{
 		private CanvasMQ Canvas;
-		private WindowsManager WindowsManager;
-		private ToolsMenu ToolsMenu;
-		private InfoWindow InfoWindow;
-		private CurrentTool CurrentTool;
-		private MouseState mouse;
-		private InfoBox InfoBox;
-		private List<OptionPicker> OptionPickers;
-		private List<WarningWindow> WarningWindows;
-		private GraphicsDevice graphicsDevice;
-		private SpriteBatch spriteBatch;
-		private List<string> unplacedTiles;
-		private SpriteFont font;
-		//private TaskManager taskManager;
 		public override bool UnsavedChanges { get => Canvas.UnsavedChanges; }
-		public override void LoadContent(SpriteBatch _spriteBatch, ContentManager content, MouseState _mouse, GraphicsDevice _graphicsDevice, FileManager fileManager, SpriteFont _font, TaskManager tasks)
+		public override void LoadContent(ContentManager content, GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, MouseState mouse, KeyboardState keyboard, FileManager fileManager, TaskManager tasks)
 		{
-			graphicsDevice = _graphicsDevice;
-			spriteBatch = _spriteBatch;
-			unplacedTiles = new();
-			font = _font;
-			//taskManager = new();
-			mouse = _mouse;
+			GraphicsDevice = graphicsDevice;
+			SpriteBatch = spriteBatch;
+
+			FileManager = fileManager;
+			TaskManager = tasks;
+			Mouse = mouse;
+			Keyboard = keyboard;
+
+			SpriteFont font = content.Load<SpriteFont>("File");
 
 			//Load Textures
 			Dictionary<string, Texture2D> textures = new()
@@ -58,23 +47,18 @@ namespace FFRMapEditorMono.MysticQuest
 			var windowSize = fileManager.Settings.GetResolution();
 
 			// Create overworld
-			Canvas = new(textures, font, graphicsDevice, spriteBatch, fileManager, mouse);
+			Canvas = new(textures, font, GraphicsDevice, SpriteBatch, FileManager, TaskManager, Mouse, Keyboard);
 
 			// Create menus
-			ToolsMenu = new(textures["tools"], textures["selectors32"], font);
+			ToolsMenu = new MysticQuest.ToolsMenu(textures["tools"], textures["selectors32"], font, SpriteBatch, TaskManager, Mouse);
 			InfoWindow = new(textures["infowindow"], font, textures["button"], windowSize);
 			CurrentTool = new();
 			InfoBox = new(font);
 
 			OptionPickers = new()
 			{
-				//new DomainPicker(domainGroupsIcons, selectors32, font),
-				//new TemplatePicker(templatesIcons, selectors32, font),
-				//new DockPicker(docksIcons, selectors32, placingIcons, font, Overworld),
-				//new MapObjectPicker(mapobjectsIcons, selectors16, placingIcons, font, Overworld),
-				//new BrushPicker(brushesTexture, selectors16, font),
-				new TilePickerMQ(textures["selectors16"], textures["placingicons"], font, Canvas),
-				new MapResize(textures["resizeicons"], textures["selectors32"], font)
+				new TilePickerMQ(textures["selectors16"], textures["placingicons"], Canvas, font, SpriteBatch, TaskManager, Mouse),
+				new MapResize(textures["resizeicons"], textures["selectors32"], font, SpriteBatch, TaskManager, Mouse)
 			};
 
 			// Warning Windows
@@ -102,39 +86,37 @@ namespace FFRMapEditorMono.MysticQuest
 			}
 
 			// Select Options
-			editorTasks.AddRange(ToolsMenu.PickOption(mouse));
-			editorTasks.AddRange(InfoWindow.ProcessInput(mouse));
+			editorTasks.AddRange(ToolsMenu.PickOption());
+			editorTasks.AddRange(InfoWindow.ProcessInput(Mouse));
 
 			foreach (var picker in OptionPickers)
 			{
-				editorTasks.AddRange(picker.PickOption(mouse));
+				editorTasks.AddRange(picker.PickOption());
 			}
 
 			foreach (var warning in WarningWindows)
 			{
-				editorTasks.AddRange(warning.ProcessInput(mouse));
+				editorTasks.AddRange(warning.ProcessInput(Mouse));
 			}
 
 			// Update Selected Tool
 			CurrentTool.Update(editorTasks);
-			ToolsMenu.UpdateBrushSize(CurrentTool.BrushSize + 1);
-			ToolsMenu.UpdateGridSize(Canvas.GridSize);
+			ToolsMenu.Update(Canvas, CurrentTool);
 
 			// Interact with the map
-			
-			if (WindowsManager.CanInteractWithMap(mouse.Position))
+			if (WindowsManager.CanInteractWithMap(Mouse.Position))
 			{
-				Canvas.UpdateTile(graphicsDevice, spriteBatch, mouse, windowSize, CurrentTool);
-				Canvas.Selector(graphicsDevice, spriteBatch, mouse, windowSize, CurrentTool);
-				Canvas.Copy(CurrentTool, editorTasks);
-				Canvas.Paste(graphicsDevice, spriteBatch, mouse, windowSize, CurrentTool, editorTasks);
-				editorTasks.AddRange(Canvas.GetTile(mouse));
+				Canvas.UpdateTile(windowSize, CurrentTool);
+				Canvas.Selector(windowSize, CurrentTool);
+				Canvas.Copy(CurrentTool);
+				Canvas.Paste(windowSize, CurrentTool);
+				editorTasks.AddRange(Canvas.GetTile());
 			}
 
 			// Update selected tiles
 			foreach (var picker in OptionPickers)
 			{
-				picker.ProcessTasks(editorTasks);
+				picker.ProcessTasks();
 			}
 
 			// Update Windows
@@ -144,50 +126,50 @@ namespace FFRMapEditorMono.MysticQuest
 			//WarningWindows.OfType<SaveWarningWindow>().First().ProcessTasks(Overworld, OptionPickers.OfType<TilePicker>().First().GetUnplacedTiles(), windowSize, editorTasks);
 
 			fileManager.ProcessTasks(null, Canvas, editorTasks);
-			Canvas.ProcessTasks(editorTasks);
+			Canvas.ProcessTasks();
 			InfoBox.ProcessTasks(editorTasks);
 
 			// Process Middle Mouse Button
 			if (keyboard.LCTRL)
 			{
-				CurrentTool.UpdateBrushScroll(mouse);
+				CurrentTool.UpdateBrushScroll(Mouse);
 			}
 			else
 			{
-				Canvas.UpdateZoom(mouse, windowSize);
+				Canvas.UpdateZoom(windowSize);
 			}
 
-			if (mouse.MiddleDown)
+			if (Mouse.MiddleDown)
 			{
-				Canvas.UpdateView(mouse.GetHoldOffset(), windowSize);
+				Canvas.UpdateView(Mouse.GetHoldOffset(), windowSize);
 			}
-			else if (mouse.MiddleClick)
+			else if (Mouse.MiddleClick)
 			{
-				mouse.SetHoldOffset();
+				Mouse.SetHoldOffset();
 			}
 		}
-		public override void Draw(MouseState mouse, Point windowSize)
+		public override void Draw(Point windowSize)
 		{
 			// Draw base canvas
-			graphicsDevice.Clear(Color.DarkSlateGray);
+			GraphicsDevice.Clear(Color.DarkSlateGray);
 
 			// Draw map+overlays
-			Canvas.Draw(spriteBatch, WindowsManager, CurrentTool, mouse, windowSize);
+			Canvas.Draw(WindowsManager, CurrentTool, windowSize);
 
 			// Draw menus
-			ToolsMenu.Draw(spriteBatch, font, mouse.Position);
-			InfoWindow.Draw(spriteBatch);
+			ToolsMenu.Draw();
+			InfoWindow.Draw(SpriteBatch);
 
 			foreach (var picker in OptionPickers)
 			{
-				picker.Draw(spriteBatch, font, mouse.Position);
+				picker.Draw();
 			}
 
-			InfoBox.Draw(spriteBatch, windowSize);
+			InfoBox.Draw(SpriteBatch, windowSize);
 
 			foreach (var warning in WarningWindows)
 			{
-				warning.Draw(spriteBatch);
+				warning.Draw(SpriteBatch);
 			}
 		}
 	}

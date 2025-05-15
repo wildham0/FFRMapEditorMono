@@ -24,15 +24,12 @@ namespace FFRMapEditorMono
 		}
 		public Rectangle GetRectangle()
 		{
-			int widthbonus = (InitialPosition.X < FinalPosition.X) ? 1 : 0;
-			int heightbonus = (InitialPosition.Y < FinalPosition.Y) ? 1 : 0;
-
 			int topx = (int)Math.Min(InitialPosition.X, FinalPosition.X);
 			int bottomx = (int)Math.Max(InitialPosition.X, FinalPosition.X);
 			int topy = (int)Math.Min(InitialPosition.Y, FinalPosition.Y); ;
 			int bottomy = (int)Math.Max(InitialPosition.Y, FinalPosition.Y); ;
-			int width = bottomx - topx + widthbonus;
-			int height = bottomy - topy + heightbonus;
+			int width = bottomx - topx + 1;
+			int height = bottomy - topy + 1;
 
 			return new Rectangle(topx, topy, width, height);
 		}

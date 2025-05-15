@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System.Net.Sockets;
+using FFRMapEditorMono.FFR;
 
 namespace FFRMapEditorMono
 {
@@ -25,7 +26,13 @@ namespace FFRMapEditorMono
 		protected Texture2D optionsWindow;
 		protected Texture2D optionSelector;
 		protected Texture2D optionIcons;
+		
 		protected SpriteFont optionFont;
+		protected SpriteBatch spriteBatch;
+		protected TaskManager taskManager;
+		protected MouseState mouse;
+
+
 		protected float zoom;
 		protected int optionsRows;
 		protected int optionsColumns;
@@ -37,29 +44,14 @@ namespace FFRMapEditorMono
 		protected List<int> unplacedOptions;
 		protected bool showPlaced;
 		protected List<int> optionTextLength;
-		public OptionPicker(Texture2D _window, Texture2D _selector, Texture2D _optionicons, int _optionsrows, int _optionscolumns, int _optionssize, List<string> _optionnames)
-		{
-			optionsWindow = _window;
-			optionSelector = _selector;
-			optionIcons = _optionicons;
 
-			Show = true;
-			ToggleTask = EditorTasks.None;
-			Position = new Vector2(0, 0);
-			zoom = 2.0f;
-			optionsRows = _optionsrows;
-			optionsColumns = _optionscolumns;
-			optionsSize = _optionssize;
-		}
-		public OptionPicker() { }
-		public OptionPicker(Texture2D _window, Texture2D _selector)
+		public OptionPicker(SpriteFont _font, SpriteBatch _spriteBatch, TaskManager _tasks, MouseState _mouse)
 		{
-			optionsWindow = _window;
-			optionSelector = _selector;
+			optionFont = _font;
+			spriteBatch = _spriteBatch;
+			taskManager = _tasks;
+			mouse = _mouse;
 
-			Show = true;
-			Position = new Vector2(0, 0);
-			zoom = 2.0f;
 		}
 		public void SetOptionTextLength()
 		{
@@ -70,7 +62,7 @@ namespace FFRMapEditorMono
 				optionTextLength.Add((int)optionFont.MeasureString(option.name).X);
 			}
 		}
-		public List<EditorTask> PickOption(MouseState mouse)
+		public List<EditorTask> PickOption()
 		{
 			Rectangle window = new Rectangle((int)Position.X, (int)Position.Y, (int)(optionsWindow.Width * zoom), (int)(optionsWindow.Height * zoom));
 
@@ -94,14 +86,15 @@ namespace FFRMapEditorMono
 				return new();
 			}
 		}
-		public bool MouseHovering(Vector2 mousecursor)
+		public bool MouseHovering()
 		{
 			Rectangle window = new Rectangle((int)Position.X, (int)Position.Y, (int)(optionsWindow.Width * zoom), (int)(optionsWindow.Height * zoom));
 
-			return window.Contains(mousecursor) && Show;
+			return window.Contains(mouse.Position) && Show;
 		}
-		public virtual void ProcessTasks(TaskManager tasks) { }
-		public virtual void Draw(SpriteBatch spriteBatch, SpriteFont font, Vector2 mouseCursor)
+		public virtual void ProcessTasks() { }
+		public virtual void Update(Canvas canvas, CurrentTool tool) { }
+		public virtual void Draw()
 		{
 			if (!Show)
 			{
@@ -146,10 +139,10 @@ namespace FFRMapEditorMono
 			}
 
 			// Draw ToolTip
-			if (window.Contains(mouseCursor))
+			if (window.Contains(mouse.Position))
 			{
-				int selectionx = ((int)(mouseCursor.X - Position.X) / (int)(optionsSize * zoom));
-				int selectiony = ((int)(mouseCursor.Y - Position.Y) / (int)(optionsSize * zoom));
+				int selectionx = ((int)(mouse.Position.X - Position.X) / (int)(optionsSize * zoom));
+				int selectiony = ((int)(mouse.Position.Y - Position.Y) / (int)(optionsSize * zoom));
 				int currentselection = selectiony * optionsColumns + selectionx;
 
 				spriteBatch.Draw(optionSelector, new Vector2(Position.X + selectionx * (optionsSize * zoom), Position.Y + selectiony * (optionsSize * zoom)), new Rectangle(0, 0, optionSelector.Height, optionSelector.Height), Color.White, 0.0f, new Vector2(0.0f, 0.0f), zoom, SpriteEffects.None, 0.0f);
@@ -178,7 +171,7 @@ namespace FFRMapEditorMono
 					spriteBatch.End();
 				
 					spriteBatch.Begin(samplerState: SamplerState.LinearClamp);
-					spriteBatch.DrawString(font, optionname, new Vector2(Position.X + selectionx * (optionsSize * zoom) + 4, Position.Y + (selectiony + 1) * (optionsSize * zoom) + 2), Color.Black);
+					spriteBatch.DrawString(optionFont, optionname, new Vector2(Position.X + selectionx * (optionsSize * zoom) + 4, Position.Y + (selectiony + 1) * (optionsSize * zoom) + 2), Color.Black);
 				}
 			}
 			spriteBatch.End();

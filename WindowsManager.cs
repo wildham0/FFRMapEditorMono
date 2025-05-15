@@ -54,10 +54,10 @@ namespace FFRMapEditorMono
 
 			foreach (var picker in optionPickers)
 			{
-				cursorinwindow |= picker.MouseHovering(mousecursor);
+				cursorinwindow |= picker.MouseHovering();
 			}
 
-			bool inTools = ToolsWindow.MouseHovering(mousecursor);
+			bool inTools = ToolsWindow.MouseHovering();
 			bool inInfoWindow = InfoWindow.MouseHovering(mousecursor);
 
 			return (!inTools && !inInfoWindow && !cursorinwindow);

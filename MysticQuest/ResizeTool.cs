@@ -10,11 +10,10 @@ namespace FFRMapEditorMono.MysticQuest
 {
 	public class MapResize : OptionPicker
 	{
-		public MapResize(Texture2D _window, Texture2D _selector, SpriteFont _font)
+		public MapResize(Texture2D _window, Texture2D _selector, SpriteFont _font, SpriteBatch _spriteBatch, TaskManager _tasks, MouseState _mouse) : base(_font, _spriteBatch, _tasks, _mouse)
 		{
 			optionsWindow = _window;
 			optionSelector = _selector;
-			optionFont = _font;
 
 			Show = false;
 			Position = new Vector2(64, 0);
@@ -59,11 +58,11 @@ namespace FFRMapEditorMono.MysticQuest
 			"40x40",
 		};
 
-		public override void ProcessTasks(TaskManager tasks)
+		public override void ProcessTasks()
 		{
 			EditorTask task;
 
-			if (tasks.Pop(EditorTasks.ResizeUpdateSelection, out task))
+			if (taskManager.Pop(EditorTasks.ResizeUpdateSelection, out task))
 			{
 				lastSelection = task.Value;
 			}

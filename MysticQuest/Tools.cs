@@ -5,16 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using FFRMapEditorMono.FFR;
 
 namespace FFRMapEditorMono.MysticQuest
 {
 	public class ToolsMenu : OptionPicker
 	{
-		public ToolsMenu(Texture2D _toolstexture, Texture2D _selector, SpriteFont _font)
+		public ToolsMenu(Texture2D _toolstexture, Texture2D _selector, SpriteFont _font, SpriteBatch _spriteBatch, TaskManager _tasks, MouseState _mouse) : base(_font, _spriteBatch, _tasks, _mouse)
 		{
 			optionsWindow = _toolstexture;
 			optionSelector = _selector;
-			optionFont = _font;
 
 			Show = true;
 			Position = new Vector2(0, 0);
@@ -29,6 +29,11 @@ namespace FFRMapEditorMono.MysticQuest
 			showPlaced = false;
 			SetOptionTextLength();
 			lastSelection = 0x00;
+		}
+		public override void Update(Canvas canvas, CurrentTool tool)
+		{
+			UpdateBrushSize(tool.BrushSize);
+			UpdateGridSize(canvas.GridSize);
 		}
 		public void UpdateBrushSize(int size)
 		{
@@ -62,9 +67,8 @@ namespace FFRMapEditorMono.MysticQuest
 			("Info", new() { new EditorTask(EditorTasks.ToggleInfoWindow) }, new() { new EditorTask(EditorTasks.None) }),
 		};
 
-		public override void Draw(SpriteBatch spriteBatch, SpriteFont font, Vector2 mouseCursor)
+		public override void Draw()
 		{
-
 			if (!Show)
 			{
 				return;
@@ -83,7 +87,7 @@ namespace FFRMapEditorMono.MysticQuest
 
 			spriteBatch.End();
 
-			base.Draw(spriteBatch, font, mouseCursor);
+			base.Draw();
 		}
 	}
 }

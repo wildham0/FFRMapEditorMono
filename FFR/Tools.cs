@@ -164,11 +164,10 @@ namespace FFRMapEditorMono.FFR
 	}
 	public class ToolsMenu : OptionPicker
 	{
-		public ToolsMenu(Texture2D _toolstexture, Texture2D _selector, SpriteFont _font)
+		public ToolsMenu(Texture2D _toolstexture, Texture2D _selector, SpriteFont _font, SpriteBatch _spriteBatch, TaskManager _tasks, MouseState _mouse) : base(_font, _spriteBatch, _tasks, _mouse)
 		{
 			optionsWindow = _toolstexture;
 			optionSelector = _selector;
-			optionFont = _font;
 
 			Show = true;
 			Position = new Vector2(0, 0);
@@ -183,6 +182,11 @@ namespace FFRMapEditorMono.FFR
 			showPlaced = false;
 			SetOptionTextLength();
 			lastSelection = 0x00;
+		}
+		public override void Update(Canvas canvas, CurrentTool tool)
+		{
+			UpdateBrushSize(tool.BrushSize);
+			UpdateGridSize(canvas.GridSize);
 		}
 		public void UpdateBrushSize(int size)
 		{
@@ -216,7 +220,7 @@ namespace FFRMapEditorMono.FFR
 			("Info", new() { new EditorTask(EditorTasks.ToggleInfoWindow) }, new() { new EditorTask(EditorTasks.None) }),
 		};
 
-		public override void Draw(SpriteBatch spriteBatch, SpriteFont font, Vector2 mouseCursor)
+		public override void Draw()
 		{
 
 			if (!Show)
@@ -237,7 +241,7 @@ namespace FFRMapEditorMono.FFR
 
 			spriteBatch.End();
 			
-			base.Draw(spriteBatch, font, mouseCursor);
+			base.Draw();
 		}
 	}
 }

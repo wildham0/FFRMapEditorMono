@@ -10,14 +10,13 @@ namespace FFRMapEditorMono.MysticQuest
 {
 	public class TilePickerMQ : OptionPicker
 	{
-		private CanvasMQ overworld;
-		public TilePickerMQ(Texture2D _selector, Texture2D _placedicons, SpriteFont _font, CanvasMQ _overworld)
+		private CanvasMQ canvas;
+		public TilePickerMQ(Texture2D _selector, Texture2D _placedicons, CanvasMQ _canvas, SpriteFont _font, SpriteBatch _spriteBatch, TaskManager _tasks, MouseState _mouse) : base(_font, _spriteBatch, _tasks, _mouse)
 		{
-			optionsWindow = _overworld.TileSet;
+			optionsWindow = _canvas.TileSet;
 			optionSelector = _selector;
 			optionIcons = _placedicons;
-			optionFont = _font;
-			overworld = _overworld;
+			canvas = _canvas;
 
 			Show = false;
 			ToggleTask = EditorTasks.TilesToggle;
@@ -27,9 +26,7 @@ namespace FFRMapEditorMono.MysticQuest
 			optionsColumns = 0x10;
 			optionsSize = 16;
 
-			//var tiles = Enumerable.Range(0, 0x80).ToList();
-
-			var tiles = _overworld.Tiles;
+			var tiles = _canvas.Tiles;
 			options = tiles.Select((t, i) => ($"{t.PropertyByte1:X2} {t.PropertyByte2:X2}",
 				new List<EditorTask>() {
 					new EditorTask(EditorTasks.TilesUpdate, i),
@@ -41,28 +38,27 @@ namespace FFRMapEditorMono.MysticQuest
 			SetOptionTextLength();
 			lastSelection = 0x00;
 			placedOptions = new();
-			unplacedOptions = requiredTiles.Select(t => (int)t).ToList();
+			unplacedOptions = new();
 			showPlaced = false;
 		}
-		public override void ProcessTasks(TaskManager tasks)
+		public override void ProcessTasks()
 		{
 			EditorTask task;
 
-			if (tasks.Pop(EditorTasks.TilesPickerUpdate, out task))
+			if (taskManager.Pop(EditorTasks.TilesPickerUpdate, out task))
 			{
 				lastSelection = task.Value;
 			}
 
-			if (tasks.Pop(EditorTasks.UpdatePlacedTilesOverlay, out task))
+			if (taskManager.Pop(EditorTasks.UpdatePlacedTilesOverlay, out task))
 			{
-				placedOptions = overworld.GetOwBytes().ToList().Intersect(requiredTiles).Select(t => (int)t).ToList();
-				unplacedOptions = requiredTiles.Select(t => (int)t).Except(placedOptions).ToList();
+
 			}
 
-			if (tasks.Pop(EditorTasks.ReloadPicker, out task))
+			if (taskManager.Pop(EditorTasks.ReloadPicker, out task))
 			{
-				optionsWindow = overworld.TileSet;
-				var tiles = overworld.Tiles;
+				optionsWindow = canvas.TileSet;
+				var tiles = canvas.Tiles;
 				options = tiles.Select((t, i) => ($"{t.PropertyByte1:X2} {t.PropertyByte2:X2}",
 					new List<EditorTask>() {
 						new EditorTask(EditorTasks.TilesUpdate, i),
@@ -78,19 +74,5 @@ namespace FFRMapEditorMono.MysticQuest
 		{
 			lastSelection = tile;
 		}
-		private List<byte> requiredTiles = new()
-		{
-
-		};
-		public List<string> GetUnplacedTiles()
-		{
-			return unplacedOptions.Select(t => TileNames[t]).ToList();
-		}
-		private List<string> TileNames = new()
-		{
-
-		};
-
 	}
-
 }

@@ -74,32 +74,28 @@ namespace FFRMapEditorMono.MysticQuest
 
 	public class CanvasMQ : Canvas
 	{
-		private List<(int x, int y)> mapDimensions = new() { (0x10, 0x10), (0x20, 0x10), (0x30, 0x10), (0x40, 0x10), (0x10, 0x20), (0x20, 0x20), (0x30, 0x20), (0x40, 0x20), (0x10, 0x30), (0x20, 0x30), (0x30, 0x30), (0x40, 0x30), (0x10, 0x40), (0x20, 0x40), (0x30, 0x40), (0x40, 0x40) };
+		public List<SingleTile> Tiles => tilesProperties.Tiles[attributes.TilesProperties];
 
-		//private Texture2D tileSet;
-		//private RenderTarget2D mapTexture;
 		private Texture2D pixelTexture;
+		private RenderTarget2D tilesGraphics;
 
-		public RenderTarget2D tilesGraphics;
-		//public RenderTarget2D tileSet;
+		// Globals
 		private MapAttributes attributes;
-		private MapPalettes MapPalettes;
-		private GraphicRows GraphicRows;
-		private TilesProperties TilesProperties;
-		public List<SingleTile> Tiles => TilesProperties.Tiles[attributes.TilesProperties];
-		private MapLayers CurrentLayer = MapLayers.EditLayer1;
-		//private MapLayers DrawingLayer = MapLayers.Layer1;
-		//private Dictionary<MapLayers, int> layerMasks = new() { { MapLayers.Layer1, 0x7F }, { MapLayers.Layer1, 0xFF }, }
-		//public CanvasMQ(Dictionary<string, Texture2D> textures, SpriteFont _font, Texture2D _domaingroups, Texture2D _docks, Texture2D _mapobjects, GraphicsDevice _graphicsDevice, SpriteBatch _spriteBatch, FileManager _fileManager)
-		public CanvasMQ(Dictionary<string, Texture2D> _textures, SpriteFont _font, GraphicsDevice _graphicsDevice, SpriteBatch _spriteBatch, FileManager _fileManager, MouseState _mouse) : base(_textures, _font, _graphicsDevice, _spriteBatch, _fileManager, _mouse)
+		private MapPalettes mapPalettes;
+		private GraphicRows graphicRows;
+		private TilesProperties tilesProperties;
+		private MapLayers currentLayer = MapLayers.EditLayer1;
+
+		readonly private List<(int x, int y)> mapDimensions = new() { (0x10, 0x10), (0x20, 0x10), (0x30, 0x10), (0x40, 0x10), (0x10, 0x20), (0x20, 0x20), (0x30, 0x20), (0x40, 0x20), (0x10, 0x30), (0x20, 0x30), (0x30, 0x30), (0x40, 0x30), (0x10, 0x40), (0x20, 0x40), (0x30, 0x40), (0x40, 0x40) };
+
+		public CanvasMQ(Dictionary<string, Texture2D> _textures, SpriteFont _font, GraphicsDevice _graphicsDevice, SpriteBatch _spriteBatch, FileManager _fileManager, TaskManager _taskmanager, MouseState _mouse, KeyboardState _keyboard) : base(_textures, _font, _graphicsDevice, _spriteBatch, _fileManager, _taskmanager, _mouse, _keyboard)
 		{
 			pixelTexture = _textures["pixel"];
-			//fileManager = _fileManager;
 
 			attributes = new();
-			MapPalettes = new();
-			GraphicRows = new();
-			TilesProperties = new();
+			mapPalettes = new();
+			graphicRows = new();
+			tilesProperties = new();
 
 			DrawTilesGraphics();
 			BlueMap();
@@ -107,8 +103,8 @@ namespace FFRMapEditorMono.MysticQuest
 		private void DrawTilesGraphics()
 		{
 			tilesGraphics = new(graphicsDevice, 0x20*8, 0x20*8, true, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
-			var palette = MapPalettes.Palettes[attributes.Palette];
-			var tilesProp = TilesProperties.Tiles[attributes.TilesProperties];
+			var palette = mapPalettes.Palettes[attributes.Palette];
+			var tilesProp = tilesProperties.Tiles[attributes.TilesProperties];
 
 			graphicsDevice.SetRenderTarget(tilesGraphics);
 			graphicsDevice.Clear(Color.Black);
@@ -121,7 +117,7 @@ namespace FFRMapEditorMono.MysticQuest
 				{
 					continue;
 				}
-				var row = GraphicRows.Rows[rowId];
+				var row = graphicRows.Rows[rowId];
 				for (var tiley = 0; tiley < 2; tiley++)
 				{
 					for (var tilex = 0; tilex < 0x10; tilex++)
@@ -205,25 +201,23 @@ namespace FFRMapEditorMono.MysticQuest
 		{
 			return new JsonMap(attributes, Convert.ToBase64String(mapCanvas));
 		}
-		public override void ProcessTasks(TaskManager tasks)
+		public override void ProcessTasks()
 		{
-			base.ProcessTasks(tasks);
+			base.ProcessTasks();
 
 			EditorTask task;
 
-			if (tasks.Pop(EditorTasks.ToggleLayer, out task))
+			if (taskManager.Pop(EditorTasks.ToggleLayer, out task))
 			{
-				CurrentLayer += task.Value;
-				if (CurrentLayer > MapLayers.ViewLayer2) CurrentLayer = MapLayers.EditLayer1;
-				if (CurrentLayer < MapLayers.EditLayer1) CurrentLayer = MapLayers.ViewLayer2;
+				currentLayer += task.Value;
+				if (currentLayer > MapLayers.ViewLayer2) currentLayer = MapLayers.EditLayer1;
+				if (currentLayer < MapLayers.EditLayer1) currentLayer = MapLayers.ViewLayer2;
 
-				tasks.Add(new EditorTask(EditorTasks.InfoBoxUpdateLayer, (int)CurrentLayer));
+				taskManager.Add(new EditorTask(EditorTasks.InfoBoxUpdateLayer, (int)currentLayer));
 				DrawMap();
-
-
 			}
 
-			if (tasks.Pop(EditorTasks.ResizeMap, out task))
+			if (taskManager.Pop(EditorTasks.ResizeMap, out task))
 			{
 				ResizeMap(task.Value);
 				DrawMap();
@@ -261,7 +255,7 @@ namespace FFRMapEditorMono.MysticQuest
 		}
 		protected override byte AdjustPutTile(byte tile)
 		{
-			return (CurrentLayer == MapLayers.EditLayer2 || CurrentLayer == MapLayers.ViewLayer2) ? (byte)(tile | 0x80) : tile;
+			return (currentLayer == MapLayers.EditLayer2 || currentLayer == MapLayers.ViewLayer2) ? (byte)(tile | 0x80) : tile;
 		}
 		protected override byte AdjustGetTile(byte tile)
 		{
@@ -283,19 +277,19 @@ namespace FFRMapEditorMono.MysticQuest
 					bool translucent = false;
 					tilevalue = tilevalue & 0x7F;
 
-					if (CurrentLayer == MapLayers.EditLayer1 && layer2)
+					if (currentLayer == MapLayers.EditLayer1 && layer2)
 					{
 						translucent = true;
 					}
-					else if (CurrentLayer == MapLayers.EditLayer2 && !layer2)
+					else if (currentLayer == MapLayers.EditLayer2 && !layer2)
 					{
 						translucent = true;
 					}
-					else if (CurrentLayer == MapLayers.ViewLayer1 && layer2)
+					else if (currentLayer == MapLayers.ViewLayer1 && layer2)
 					{
 						tilevalue = 0x00;
 					}
-					else if (CurrentLayer == MapLayers.ViewLayer2 && !layer2)
+					else if (currentLayer == MapLayers.ViewLayer2 && !layer2)
 					{
 						tilevalue = 0x00;
 					}

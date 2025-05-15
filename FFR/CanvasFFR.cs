@@ -58,8 +58,6 @@ namespace FFRMapEditorMono.FFR
 		private List<(OverworldTeleportIndex location, SCCoords coord)> docks;
 		private List<(MapObject mapobject, SCCoords coord)> mapObjects;
 		private List<SmartBrush> smartBrushes;
-		private List<List<(int id, OwEncounterGroup group)>> targetDomains;
-
 		public bool UpdatePlacedMapObjects { get; set; }
 		public bool UpdatePlacedDocks { get; set; }
 		public bool UpdatePlacedRequiredTiles { get; set; }
@@ -68,10 +66,8 @@ namespace FFRMapEditorMono.FFR
 		public bool DefaultDockPlaced => docks.Where(d => d.location == OverworldTeleportIndex.None).Any();
 
 		private List<MapObject> requiredMapObjects = new() { MapObject.StartingPosition, MapObject.Canal, MapObject.Bridge, MapObject.Airship };
-
-		public CanvasFFR(Dictionary<string, Texture2D> _textures, SpriteFont _font, GraphicsDevice _graphicsDevice, SpriteBatch _spriteBatch, FileManager _fileManager, MouseState _mouse) : base(_textures, _font, _graphicsDevice, _spriteBatch, _fileManager, _mouse)
+		public CanvasFFR(Dictionary<string, Texture2D> _textures, SpriteFont _font, GraphicsDevice _graphicsDevice, SpriteBatch _spriteBatch, FileManager _fileManager, TaskManager _taskmanager, MouseState _mouse, KeyboardState _keyboard) : base(_textures, _font, _graphicsDevice, _spriteBatch, _fileManager, _taskmanager, _mouse, _keyboard)
 		{
-
 			TileSet = _textures["tileset"];
 
 			domainGroupIcons = _textures["domainsicons"];
@@ -88,7 +84,6 @@ namespace FFRMapEditorMono.FFR
 			UpdatePlacedMapObjects = true;
 			UpdatePlacedDocks = true;
 			UpdatePlacedRequiredTiles = true;
-			
 		}
 		public override void Undo()
 		{
@@ -149,13 +144,13 @@ namespace FFRMapEditorMono.FFR
 			UpdatePlacedDocks = true;
 			UpdatePlacedRequiredTiles = true;
 		}
-		public override void ProcessTasks(TaskManager tasks)
+		public override void ProcessTasks()
 		{
-			base.ProcessTasks(tasks);
+			base.ProcessTasks();
 
 			EditorTask task;
 
-			if (tasks.Pop(EditorTasks.DocksRemove, out task))
+			if (taskManager.Pop(EditorTasks.DocksRemove, out task))
 			{
 				int dockToRemove = task.Value == (int)OverworldTeleportIndex.DefaultLocation ? (int)OverworldTeleportIndex.None : task.Value;
 
@@ -163,7 +158,7 @@ namespace FFRMapEditorMono.FFR
 				UpdatePlacedDocks = true;
 			}
 
-			if (tasks.Pop(EditorTasks.MapObjectsRemove, out task))
+			if (taskManager.Pop(EditorTasks.MapObjectsRemove, out task))
 			{
 				mapObjects.RemoveAll(o => o.mapobject == (MapObject)task.Value);
 				UpdatePlacedMapObjects = true;
@@ -171,19 +166,19 @@ namespace FFRMapEditorMono.FFR
 
 			if (UpdatePlacedMapObjects)
 			{
-				tasks.Add(new EditorTask(EditorTasks.UpdatePlacedObjectsOverlay));
+				taskManager.Add(new EditorTask(EditorTasks.UpdatePlacedObjectsOverlay));
 				UpdatePlacedMapObjects = false;
 			}
 
 			if (UpdatePlacedDocks)
 			{
-				tasks.Add(new EditorTask(EditorTasks.UpdatePlacedDocksOverlay));
+				taskManager.Add(new EditorTask(EditorTasks.UpdatePlacedDocksOverlay));
 				UpdatePlacedDocks = false;
 			}
 
 			if (UpdatePlacedRequiredTiles)
 			{
-				tasks.Add(new EditorTask(EditorTasks.UpdatePlacedTilesOverlay));
+				taskManager.Add(new EditorTask(EditorTasks.UpdatePlacedTilesOverlay));
 				UpdatePlacedRequiredTiles = false;
 			}
 		}
@@ -265,9 +260,9 @@ namespace FFRMapEditorMono.FFR
 			UpdatePlacedDocks = true;
 			UpdatePlacedRequiredTiles = true;
 		}
-		public override void UpdateTile(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, MouseState mouse, Point windowSize, CurrentTool tool)
+		public override void UpdateTile(Point windowSize, CurrentTool tool)
 		{
-			base.UpdateTile(graphicsDevice, spriteBatch, mouse, windowSize, tool);
+			base.UpdateTile(windowSize, tool);
 
 			if (tool.Tool == ToolAction.Brush)
 			{
@@ -278,7 +273,7 @@ namespace FFRMapEditorMono.FFR
 				graphicsDevice.SetRenderTarget(mapTexture);
 				spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
-				ProcessSmartBrush(new Point(middlex, middley), brushsize, spriteBatch);
+				ProcessSmartBrush(new Point(middlex, middley), brushsize);
 
 				spriteBatch.End();
 				graphicsDevice.SetRenderTarget(null);
@@ -286,7 +281,7 @@ namespace FFRMapEditorMono.FFR
 
 			UpdatePlacedRequiredTiles = true;
 		}
-		public void PlaceTemplate(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, MouseState mouse, Point windowSize, CurrentTool tool)
+		public void PlaceTemplate(Point windowSize, CurrentTool tool)
 		{
 			if (!mouse.LeftDown && !mouse.LeftClick || tool.Tool != ToolAction.Templates)
 			{
@@ -349,7 +344,7 @@ namespace FFRMapEditorMono.FFR
 			UpdatePlacedRequiredTiles = true;
 			UnsavedChanges = true;
 		}
-		private void SmartBrushAdjustRow(int y, int centerx, int size, SpriteBatch spriteBatch)
+		private void SmartBrushAdjustRow(int y, int centerx, int size)
 		{
 			int minsize = -(size / 2);
 			int maxsize = size / 2;
@@ -381,7 +376,7 @@ namespace FFRMapEditorMono.FFR
 				spriteBatch.Draw(TileSet, new Vector2(x * 16, y * 16), GetTileRectangle(newtile), Color.White, 0.0f, new Vector2(0.0f, 0.0f), 1.0f, SpriteEffects.None, 0.0f);
 			}
 		}
-		private void SmartBrushAdjustColumn(int centery, int x, int size, SpriteBatch spriteBatch)
+		private void SmartBrushAdjustColumn(int centery, int x, int size)
 		{
 			int minsize = -(size / 2);
 			int maxsize = size / 2;
@@ -414,24 +409,24 @@ namespace FFRMapEditorMono.FFR
 				spriteBatch.Draw(TileSet, new Vector2(x * 16, y * 16), GetTileRectangle(newtile), Color.White, 0.0f, new Vector2(0.0f, 0.0f), 1.0f, SpriteEffects.None, 0.0f);
 			}
 		}
-		private void ProcessSmartBrush(Point center, int size, SpriteBatch spriteBatch)
+		private void ProcessSmartBrush(Point center, int size)
 		{
 			int minsize = -((size + 2) / 2);
 			int maxsize = (size + 2) / 2;
 
-			SmartBrushAdjustRow(center.Y + minsize, center.X, size + 2, spriteBatch);
-			SmartBrushAdjustRow(center.Y + minsize + 1, center.X, size, spriteBatch);
+			SmartBrushAdjustRow(center.Y + minsize, center.X, size + 2);
+			SmartBrushAdjustRow(center.Y + minsize + 1, center.X, size);
 
-			SmartBrushAdjustRow(center.Y + maxsize, center.X, size + 2, spriteBatch);
-			SmartBrushAdjustRow(center.Y + maxsize - 1, center.X, size, spriteBatch);
+			SmartBrushAdjustRow(center.Y + maxsize, center.X, size + 2);
+			SmartBrushAdjustRow(center.Y + maxsize - 1, center.X, size);
 
-			SmartBrushAdjustColumn(center.Y, center.X + minsize, size + 2, spriteBatch);
-			SmartBrushAdjustColumn(center.Y, center.X + minsize + 1, size, spriteBatch);
+			SmartBrushAdjustColumn(center.Y, center.X + minsize, size + 2);
+			SmartBrushAdjustColumn(center.Y, center.X + minsize + 1, size);
 
-			SmartBrushAdjustColumn(center.Y, center.X + maxsize, size + 2, spriteBatch);
-			SmartBrushAdjustColumn(center.Y, center.X + maxsize - 1, size, spriteBatch);
+			SmartBrushAdjustColumn(center.Y, center.X + maxsize, size + 2);
+			SmartBrushAdjustColumn(center.Y, center.X + maxsize - 1, size);
 		}
-		public void UpdateDomain(MouseState mouse, CurrentTool tool)
+		public void UpdateDomain(CurrentTool tool)
 		{
 			if (!mouse.LeftDown && !mouse.LeftClick || tool.Tool != ToolAction.Domains)
 			{
@@ -450,7 +445,7 @@ namespace FFRMapEditorMono.FFR
 
 			UnsavedChanges = true;
 		}
-		public void UpdateDock(MouseState mouse, CurrentTool tool)
+		public void UpdateDock(CurrentTool tool)
 		{
 			if (!mouse.LeftDown && !mouse.LeftClick || tool.Tool != ToolAction.Docks)
 			{
@@ -478,7 +473,7 @@ namespace FFRMapEditorMono.FFR
 			UpdatePlacedDocks = true;
 			UnsavedChanges = true;
 		}
-		public void UpdateMapObject(MouseState mouse, CurrentTool tool)
+		public void UpdateMapObject(CurrentTool tool)
 		{
 			if (!mouse.LeftDown && !mouse.LeftClick || tool.Tool != ToolAction.MapObjects)
 			{
@@ -511,33 +506,32 @@ namespace FFRMapEditorMono.FFR
 			UpdatePlacedMapObjects = true;
 			UnsavedChanges = true;
 		}
-		public override void DrawOverlayLayer(SpriteBatch spriteBatch, WindowsManager manager, CurrentTool tool, MouseState mouse, Point windowSize)
+		public override void DrawOverlayLayer(WindowsManager manager, CurrentTool tool, Point windowSize)
 		{
 			if (manager.ShowDomainOverlay)
 			{
-				DrawDomainsOverlay(spriteBatch);
+				DrawDomainsOverlay();
 			}
 
 			if (manager.ShowDockOverlay)
 			{
-				DrawDocksOverlay(spriteBatch);
+				DrawDocksOverlay();
 			}
 
 			if (manager.ShowMapObjectsOverlay)
 			{
-				DrawMapObjectsOverlay(spriteBatch);
+				DrawMapObjectsOverlay();
 			}
 
-			DrawSelection(spriteBatch, selector.ShowSelection);
+			DrawSelection(selector.ShowSelection);
 		}
-		public override void DrawCursorLayer(SpriteBatch spriteBatch, WindowsManager manager, CurrentTool tool, MouseState mouse, Point windowSize)
+		public override void DrawCursorLayer(WindowsManager manager, CurrentTool tool, Point windowSize)
 		{
-			DrawBrush(spriteBatch, tool, mouse);
-			DrawTemplate(spriteBatch, tool, mouse);
-			DrawPastBin(spriteBatch, tool, mouse);
-			//DrawCoordinate(spriteBatch, windowSize, mouse);
+			DrawBrush(tool);
+			DrawTemplate(tool);
+			DrawPasteBin(tool);
 		}
-		public void DrawDomainsOverlay(SpriteBatch spriteBatch)
+		public void DrawDomainsOverlay()
 		{
 			Texture2D line = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
 			line.SetData(new[] { Color.Red });
@@ -564,7 +558,7 @@ namespace FFRMapEditorMono.FFR
 				}
 			}
 		}
-		public void DrawTemplate(SpriteBatch spriteBatch, CurrentTool tool, MouseState mouse)
+		public void DrawTemplate(CurrentTool tool)
 		{
 			if (tool.Tool != ToolAction.Templates)
 			{
@@ -588,7 +582,7 @@ namespace FFRMapEditorMono.FFR
 				}
 			}
 		}
-		public void DrawDocksOverlay(SpriteBatch spriteBatch)
+		public void DrawDocksOverlay()
 		{
 			Dictionary<SCCoords, int> previouslyplaced = new();
 
@@ -617,7 +611,7 @@ namespace FFRMapEditorMono.FFR
 				spriteBatch.Draw(docksIcons, new Vector2(viewOffset.X + dock.coord.X * 16 * Zoom + count * 16 * Math.Max(Zoom / 2, 1f), viewOffset.Y + dock.coord.Y * 16 * Zoom), new Rectangle(dockx * 32, docky * 32, 32, 32), Color.White, 0.0f, new Vector2(0.0f, 0.0f), Math.Max(Zoom / 2, 1f), SpriteEffects.None, 0.0f);
 			}
 		}
-		public void DrawMapObjectsOverlay(SpriteBatch spriteBatch)
+		public void DrawMapObjectsOverlay()
 		{
 			Dictionary<SCCoords, int> previouslyplaced = new();
 

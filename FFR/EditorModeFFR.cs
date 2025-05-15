@@ -15,38 +15,22 @@ using Microsoft.VisualBasic.Devices;
 namespace FFRMapEditorMono.FFR
 {
 
-	public class EditorMode
-	{
-		public virtual bool UnsavedChanges { get => false; }
-		public EditorMode() { }
-		public virtual void LoadContent(SpriteBatch spriteBatch, ContentManager content, MouseState mouse, GraphicsDevice graphicsDevice, FileManager fileManager, SpriteFont font, TaskManager tasks) { }
-		public virtual void Update(FileManager fileManager, TaskManager editorTasks, KeyboardState keyboard, Point windowSize, bool windowResized) { }
-		public virtual void Draw(MouseState mouse, Point windowSize) { }
-	}
-
 	public class FFREditorMode: EditorMode
 	{
 		private CanvasFFR Overworld;
-		private WindowsManager WindowsManager;
-		private ToolsMenu ToolsMenu;
-		private InfoWindow InfoWindow;
-		private CurrentTool CurrentTool;
-		private List<OptionPicker> OptionPickers;
-		private List<WarningWindow> WarningWindows;
-		private GraphicsDevice graphicsDevice;
-		private SpriteBatch spriteBatch;
 		private List<string> unplacedTiles;
-		private InfoBox InfoBox;
-		private SpriteFont font;
-		private MouseState mouse;
 		public override bool UnsavedChanges { get => Overworld.UnsavedChanges; }
-		public override void LoadContent(SpriteBatch _spriteBatch, ContentManager content, MouseState _mouse, GraphicsDevice _graphicsDevice, FileManager fileManager, SpriteFont _font, TaskManager tasks)
+		public override void LoadContent(ContentManager content, GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, MouseState mouse, KeyboardState keyboard, FileManager fileManager, TaskManager tasks)
 		{
-			graphicsDevice = _graphicsDevice;
-			spriteBatch = _spriteBatch;
-			unplacedTiles = new();
-			font = _font;
-			mouse = _mouse;
+			GraphicsDevice = graphicsDevice;
+			SpriteBatch = spriteBatch;
+
+			FileManager = fileManager;
+			TaskManager = tasks;
+			Mouse = mouse;
+			Keyboard = keyboard;
+			
+			SpriteFont font = content.Load<SpriteFont>("File");
 
 			//Load Textures
 			Dictionary<string, Texture2D> textures = new()
@@ -67,25 +51,26 @@ namespace FFRMapEditorMono.FFR
 				{ "pixel", content.Load<Texture2D>("pixel") },
 			};
 
-			var windowSize = fileManager.Settings.GetResolution();
+			var windowSize = FileManager.Settings.GetResolution();
+			unplacedTiles = new();
 
 			// Create overworld
-			Overworld = new(textures, font, graphicsDevice, spriteBatch, fileManager, mouse);
+			Overworld = new(textures, font, GraphicsDevice, SpriteBatch, FileManager, TaskManager, Mouse, Keyboard);
 
 			// Create menus
-			ToolsMenu = new(textures["tools"], textures["selectors32"], font);
+			ToolsMenu = new FFR.ToolsMenu(textures["tools"], textures["selectors32"], font, SpriteBatch, TaskManager, Mouse);
 			InfoWindow = new(textures["infowindow"], font, textures["button"], windowSize);
 			CurrentTool = new();
 			InfoBox = new(font);
 
 			OptionPickers = new()
 			{
-				new DomainPicker(textures["domainsicons"], textures["selectors32"], font),
-				new TemplatePicker(textures["templates"], textures["selectors32"], font),
-				new DockPicker(textures["docksicons"], textures["selectors32"], textures["placingicons"], font, Overworld),
-				new MapObjectPicker(textures["mapobjects"], textures["selectors16"], textures["placingicons"], font, Overworld),
-				new BrushPicker(textures["smartbrushes"], textures["selectors16"], font),
-				new TilePicker(textures["tileset"], textures["selectors16"], textures["placingicons"], font, Overworld)
+				new DomainPicker(textures["domainsicons"], textures["selectors32"], font, SpriteBatch, TaskManager, Mouse),
+				new TemplatePicker(textures["templates"], textures["selectors32"], font, SpriteBatch, TaskManager, Mouse),
+				new DockPicker(textures["docksicons"], textures["selectors32"], textures["placingicons"], Overworld, font, SpriteBatch, TaskManager, Mouse),
+				new MapObjectPicker(textures["mapobjects"], textures["selectors16"], textures["placingicons"], Overworld, font, SpriteBatch, TaskManager, Mouse),
+				new BrushPicker(textures["smartbrushes"], textures["selectors16"], font, SpriteBatch, TaskManager, Mouse),
+				new TilePicker(textures["tileset"], textures["selectors16"], textures["placingicons"], Overworld, font, SpriteBatch, TaskManager, Mouse)
 			};
 
 			// Warning Windows
@@ -111,43 +96,42 @@ namespace FFRMapEditorMono.FFR
 			}
 
 			// Select Options
-			editorTasks.AddRange(ToolsMenu.PickOption(mouse));
-			editorTasks.AddRange(InfoWindow.ProcessInput(mouse));
+			editorTasks.AddRange(ToolsMenu.PickOption());
+			editorTasks.AddRange(InfoWindow.ProcessInput(Mouse));
 
 			foreach (var picker in OptionPickers)
 			{
-				editorTasks.AddRange(picker.PickOption(mouse));
+				editorTasks.AddRange(picker.PickOption());
 			}
 
 			foreach (var warning in WarningWindows)
 			{
-				editorTasks.AddRange(warning.ProcessInput(mouse));
+				editorTasks.AddRange(warning.ProcessInput(Mouse));
 			}
 
 			// Update Selected Tool
 			CurrentTool.Update(editorTasks);
 			CurrentTool.GetTemplate(editorTasks, OptionPickers.OfType<TemplatePicker>().First().CurrentTemplate);
-			ToolsMenu.UpdateBrushSize(CurrentTool.BrushSize + 1);
-			ToolsMenu.UpdateGridSize(Overworld.GridSize);
+			ToolsMenu.Update(Overworld, CurrentTool);
 
 			// Interact with the map
-			if (WindowsManager.CanInteractWithMap(mouse.Position))
+			if (WindowsManager.CanInteractWithMap(Mouse.Position))
 			{
-				Overworld.UpdateTile(graphicsDevice, spriteBatch, mouse, windowSize, CurrentTool);
-				Overworld.PlaceTemplate(graphicsDevice, spriteBatch, mouse, windowSize, CurrentTool);
-				Overworld.UpdateDomain(mouse, CurrentTool);
-				Overworld.UpdateDock(mouse, CurrentTool);
-				Overworld.UpdateMapObject(mouse, CurrentTool);
-				Overworld.Selector(graphicsDevice, spriteBatch, mouse, windowSize, CurrentTool);
-				Overworld.Copy(CurrentTool, editorTasks);
-				Overworld.Paste(graphicsDevice, spriteBatch, mouse, windowSize, CurrentTool, editorTasks);
-				editorTasks.AddRange(Overworld.GetTile(mouse));
+				Overworld.UpdateTile(windowSize, CurrentTool);
+				Overworld.PlaceTemplate(windowSize, CurrentTool);
+				Overworld.UpdateDomain(CurrentTool);
+				Overworld.UpdateDock(CurrentTool);
+				Overworld.UpdateMapObject(CurrentTool);
+				Overworld.Selector(windowSize, CurrentTool);
+				Overworld.Copy(CurrentTool);
+				Overworld.Paste(windowSize, CurrentTool);
+				editorTasks.AddRange(Overworld.GetTile());
 			}
 
 			// Update selected tiles
 			foreach (var picker in OptionPickers)
 			{
-				picker.ProcessTasks(editorTasks);
+				picker.ProcessTasks();
 			}
 
 			// Update Windows
@@ -157,51 +141,51 @@ namespace FFRMapEditorMono.FFR
 			WarningWindows.OfType<SaveWarningWindow>().First().ProcessTasks(Overworld, windowSize, editorTasks);
 
 			fileManager.ProcessTasks(Overworld, null, editorTasks);
-			Overworld.ProcessTasks(editorTasks);
+			Overworld.ProcessTasks();
 			InfoBox.ProcessTasks(editorTasks);
 
 			// Process Middle Mouse Button
 			if (keyboard.LCTRL)
 			{
-				CurrentTool.UpdateBrushScroll(mouse);
+				CurrentTool.UpdateBrushScroll(Mouse);
 			}
 			else
 			{
-				Overworld.UpdateZoom(mouse, windowSize);
+				Overworld.UpdateZoom(windowSize);
 			}
 
-			if (mouse.MiddleDown)
+			if (Mouse.MiddleDown)
 			{
-				Overworld.UpdateView(mouse.GetHoldOffset(), windowSize);
+				Overworld.UpdateView(Mouse.GetHoldOffset(), windowSize);
 			}
-			else if (mouse.MiddleClick)
+			else if (Mouse.MiddleClick)
 			{
-				mouse.SetHoldOffset();
+				Mouse.SetHoldOffset();
 			}
 		}
 
-		public override void Draw(MouseState mouse, Point windowSize)
+		public override void Draw(Point windowSize)
 		{
 			// Draw base canvas
-			graphicsDevice.Clear(Color.DarkSlateGray);
+			GraphicsDevice.Clear(Color.DarkSlateGray);
 
 			// Draw map+overlays
-			Overworld.Draw(spriteBatch, WindowsManager, CurrentTool, mouse, windowSize);
+			Overworld.Draw(WindowsManager, CurrentTool, windowSize);
 
 			// Draw menus
-			ToolsMenu.Draw(spriteBatch, font, mouse.Position);
-			InfoWindow.Draw(spriteBatch);
+			ToolsMenu.Draw();
+			InfoWindow.Draw(SpriteBatch);
 
 			foreach (var picker in OptionPickers)
 			{
-				picker.Draw(spriteBatch, font, mouse.Position);
+				picker.Draw();
 			}
 
-			InfoBox.Draw(spriteBatch, windowSize);
+			InfoBox.Draw(SpriteBatch, windowSize);
 
 			foreach (var warning in WarningWindows)
 			{
-				warning.Draw(spriteBatch);
+				warning.Draw(SpriteBatch);
 			}
 		}
 	}

@@ -18,26 +18,16 @@ namespace FFRMapEditorMono
 		private GameMode gameMode = GameMode.FFR;
 		private GraphicsDeviceManager _graphics;
 		private SpriteBatch _spriteBatch;
-		private Canvas overworld;
-		private ToolsMenu toolsMenu;
-		private InfoWindow infoWindow;
 
 		private EditorMode editorMode;
 
-		private List<WarningWindow> warningWindows;
-		private List<OptionPicker> optionPickers;
-
 		private Point windowSize = new(1200, 800);
-		private SpriteFont font;
+
 		private FileManager fileManager;
-		private CurrentTool currentTool;
 		private MouseState mouse;
 		private KeyboardState keyboard;
 		private TaskManager editorTasks;
-		private WindowsManager windowsManager;
 		
-		private bool LastActiveState = true;
-		private List<string> unplacedTiles;
 		private int timeToBackup;
 		public Game1()
 		{
@@ -60,8 +50,6 @@ namespace FFRMapEditorMono
 			mouse = new();
 			keyboard = new(editorTasks);
 
-			unplacedTiles = new();
-
 			// Init Editor Mode
 			editorMode = gameMode == GameMode.FFR ? new FFR.FFREditorMode() : new MysticQuest.MQEditorMode();
 
@@ -80,9 +68,7 @@ namespace FFRMapEditorMono
 		protected override void LoadContent()
 		{
 			_spriteBatch = new SpriteBatch(GraphicsDevice);
-			font = Content.Load<SpriteFont>("File");
-
-			editorMode.LoadContent(_spriteBatch, Content, mouse, GraphicsDevice, fileManager, font, editorTasks);
+			editorMode.LoadContent(Content, GraphicsDevice, _spriteBatch, mouse, keyboard, fileManager, editorTasks);
 		}
 		protected override void Update(GameTime gameTime)
 		{
@@ -149,7 +135,7 @@ namespace FFRMapEditorMono
 
 		protected override void Draw(GameTime gameTime)
 		{
-			editorMode.Draw(mouse, windowSize);
+			editorMode.Draw(windowSize);
 
 			base.Draw(gameTime);
 		}
