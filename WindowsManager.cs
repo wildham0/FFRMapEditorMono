@@ -172,7 +172,7 @@ namespace FFRMapEditorMono
 		
 		static List<EditorTasks> toggleTaskToType = new()
 		{
-			EditorTasks.BrushesToggle, EditorTasks.TilesToggle, EditorTasks.ResizeToggle
+			EditorTasks.BrushesToggle, EditorTasks.TilesToggle, EditorTasks.ResizeToggle, EditorTasks.ToggleTileViewer
 
 		};
 		static Dictionary<EditorTasks, List<Type>> openTaskToType = new()

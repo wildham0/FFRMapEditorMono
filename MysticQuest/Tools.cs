@@ -53,7 +53,7 @@ namespace FFRMapEditorMono.MysticQuest
 			("Toggle Layer", new() { new EditorTask(EditorTasks.ToggleLayer, 1) }, new() { new EditorTask(EditorTasks.ToggleLayer, -1) }),
 			("Resize", new() { new EditorTask(EditorTasks.ResizeToggle) }, new() { new EditorTask(EditorTasks.None) }),
 			("Selector", new() { new EditorTask(EditorTasks.SelectorSetTool) }, new() { new EditorTask(EditorTasks.None) }),
-			("Docks", new() { new EditorTask(EditorTasks.DocksOpen), new EditorTask(EditorTasks.DocksSetTool) }, new() { new EditorTask(EditorTasks.None) }),
+			("Tile Viewer", new() { new EditorTask(EditorTasks.ToggleTileViewer) }, new()),
 			("MapObjects", new() { new EditorTask(EditorTasks.MapObjectsOpen), new EditorTask(EditorTasks.MapObjectsSetTool) }, new() { new EditorTask(EditorTasks.None) }),
 			("Undo", new() { new EditorTask(EditorTasks.PaintingUndo) }, new() ),
 			("Redo", new() { new EditorTask(EditorTasks.PaintingRedo) }, new() ),

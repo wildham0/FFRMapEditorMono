@@ -253,6 +253,7 @@ namespace FFRMapEditorMono
 			{
 				LoadData();
 				taskManager.Add(EditorTasks.ReloadPicker);
+				taskManager.Add(EditorTasks.ReloadTileViewer);
 			}
 
 			if (taskManager	.Pop(EditorTasks.OverworldBlueMap, out task))

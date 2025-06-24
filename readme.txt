@@ -23,7 +23,7 @@ Source code at
 1.05: - Add Selection and Copy/Paste.
 1.04: - Add Gridlines and Coordinates options.
 1.03: - Fixed FFR locations error at import.
-1.02: - Added Undo/Redo options for paiting actions on the map.
+1.02: - Added Undo/Redo options for painting actions on the map.
       - Added automatic backup ("backupowmap.json" in root folder)
 1.01: - Added safeguards to New Map and Load Map functions.
       - New Map now clear Map Objects.

@@ -78,6 +78,7 @@ namespace FFRMapEditorMono.MysticQuest
 
 		private Texture2D pixelTexture;
 		private RenderTarget2D tilesGraphics;
+		public Texture2D TilesGraphics => (Texture2D)tilesGraphics;
 
 		// Globals
 		private MapAttributes attributes;

@@ -58,7 +58,8 @@ namespace FFRMapEditorMono.MysticQuest
 			OptionPickers = new()
 			{
 				new TilePickerMQ(textures["selectors16"], textures["placingicons"], Canvas, font, SpriteBatch, TaskManager, Mouse),
-				new MapResize(textures["resizeicons"], textures["selectors32"], font, SpriteBatch, TaskManager, Mouse)
+				new MapResize(textures["resizeicons"], textures["selectors32"], font, SpriteBatch, TaskManager, Mouse),
+				new TilesViewer(textures["selectors16"], textures["placingicons"], Canvas, font, SpriteBatch, TaskManager, Mouse),
 			};
 
 			// Warning Windows

@@ -95,6 +95,8 @@ namespace FFRMapEditorMono
 		ToggleLayer,
 		ToggleDrawingLayer,
 		ToggleInfoBox,
+		ToggleTileViewer,
+		ReloadTileViewer,
 
 		ResizeMap,
 		ResizeToggle,
