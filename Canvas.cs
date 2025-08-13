@@ -261,12 +261,12 @@ namespace FFRMapEditorMono
 				BlueMap();
 			}
 
-			if (taskManager.Pop(EditorTasks.PaintingUndo, out task))
+			if (taskManager.Pop(EditorTasks.Undo, out task))
 			{
 				Undo();
 			}
 
-			if (taskManager.Pop(EditorTasks.PaintingRedo, out task))
+			if (taskManager.Pop(EditorTasks.Redo, out task))
 			{
 				Redo();
 			}

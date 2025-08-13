@@ -15,7 +15,7 @@ namespace FFRMapEditorMono
 	public class Game1 : Game
 	{
 		// Set mode to switch between FFR or FFMQ editing mode
-		private GameMode gameMode = GameMode.FFMQ;
+		private GameMode gameMode = GameMode.FFR;
 		private GraphicsDeviceManager _graphics;
 		private SpriteBatch _spriteBatch;
 

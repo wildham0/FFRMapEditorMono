@@ -509,6 +509,7 @@ namespace FFRMapEditorMono
 
 					filesaved = true;
 					var splittedFileName = fbd.FileName.Split('\\');
+					LoadedMapPath = String.Join('\\', splittedFileName.Take(splittedFileName.Length - 1));
 					LoadedMapName = splittedFileName.Last();
 					FilenameUpdated = true;
 				}
