@@ -34,6 +34,7 @@ namespace FFRMapEditorMono.MysticQuest
 		}
 		public override void WriteFile(Stream file, WriteFormat format)
 		{
+			file.SetLength(0);
 			string serializedOwData = GetJsonString();
 			using var stream = new StreamWriter(file);
 			stream.Write(serializedOwData);

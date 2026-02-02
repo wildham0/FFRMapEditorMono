@@ -57,6 +57,8 @@ namespace FFRMapEditorMono.FFR
 		}
 		public override void WriteFile(Stream file, WriteFormat format)
 		{
+			file.SetLength(0);
+			
 			if (format == WriteFormat.Binary)
 			{
 				using var stream = new BinaryWriter(file);

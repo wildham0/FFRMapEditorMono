@@ -229,6 +229,8 @@ namespace FFRMapEditorMono
 		}
 		public virtual void WriteFile(Stream file, WriteFormat format)
 		{
+			file.SetLength(0);
+
 			if (ManagerMode == GameMode.FFR)
 			{
 				if (format == WriteFormat.Binary)
@@ -541,7 +543,7 @@ namespace FFRMapEditorMono
 		public bool SaveBackup()
 		{
 			string serializedOwData = GetJsonString();
-			using var stream = new StreamWriter("backupowmap.json");
+			using var stream = new StreamWriter("backupowmap.json", false);
 			stream.Write(serializedOwData);
 			stream.Close();
 
@@ -554,7 +556,7 @@ namespace FFRMapEditorMono
 		public void SaveSettings()
 		{
 			string serializedData = JsonSerializer.Serialize<SettingsManager>(Settings, new JsonSerializerOptions { WriteIndented = true });
-			using var stream = new StreamWriter("settings.json");
+			using var stream = new StreamWriter("settings.json", false);
 			stream.Write(serializedData);
 			stream.Close();
 		}
