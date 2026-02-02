@@ -23,7 +23,7 @@ namespace FFRMapEditorMono
 			UpdatePosition(resolution);
 			buttons = new()
 			{
-				new(font, "Save map file anyway", _buttonTexture, new() { new EditorTask(EditorTasks.SaveNoWarning, (int)saveMode), new EditorTask(EditorTasks.SaveWarningClose, 10) }),
+				new(font, "Save map file anyway", _buttonTexture, new() { new EditorTask(EditorTasks.SaveNoWarning), new EditorTask(EditorTasks.SaveWarningClose, 10) }),
 				new(font, "Return to editor", _buttonTexture, new() { new EditorTask(EditorTasks.SaveWarningClose, 10)})
 			};
 		}
@@ -31,16 +31,8 @@ namespace FFRMapEditorMono
 		{
 			EditorTask task;
 
-			if (tasks.Pop(EditorTasks.SetSavingMode, out task))
-			{
-				saveMode = (SavingMode)task.Value;
-			}
-
 			if (tasks.Pop(EditorTasks.SaveWarningUpdate, out task))
 			{
-				saveMode = (SavingMode)task.Value;
-
-
 				var validationresult = overworld.ValidateObjects();
 
 				warningText = "*** Warning *** \n\n";

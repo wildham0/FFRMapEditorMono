@@ -61,12 +61,14 @@ namespace FFRMapEditorMono.FFR
 			{
 				using var stream = new BinaryWriter(file);
 				stream.Write(MapData.DecodeMap());
+				stream.Close();
 			}
 			else
 			{
 				string serializedOwData = JsonSerializer.Serialize<OwMapExchangeData>(MapData, new JsonSerializerOptions { WriteIndented = true });
 				using var stream = new StreamWriter(file);
 				stream.Write(serializedOwData);
+				stream.Close();
 			}
 		}
 		public override void ReadFile(Stream file, WriteFormat format)
@@ -75,6 +77,7 @@ namespace FFRMapEditorMono.FFR
 			{
 				using var stream = new BinaryReader(file);
 				var dataarray = stream.ReadBytes(0x10000);
+				stream.Close();
 
 				MapData = new();
 				MapData.EncodeMapFromBytes(dataarray);
@@ -83,6 +86,7 @@ namespace FFRMapEditorMono.FFR
 			{
 				using var stream = new StreamReader(file);
 				var jsonstring = stream.ReadToEnd();
+				stream.Close();
 
 				MapData = JsonSerializer.Deserialize<OwMapExchangeData>(jsonstring);
 			}

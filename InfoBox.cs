@@ -25,7 +25,6 @@ namespace FFRMapEditorMono
 		protected float zoom;
 		protected Button okButton;
 		protected Button cancelButton;
-		protected SavingMode saveMode;
 		protected string warningText;
 		protected Vector2 windowDimensions;
 		protected int windowWidth;

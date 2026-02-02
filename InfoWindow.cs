@@ -32,12 +32,13 @@ namespace FFRMapEditorMono
 			windowWidth = 28 * 8;
 			okButton = new(_font, "OK", _buttonTexture, new() { new EditorTask(EditorTasks.ToggleInfoWindow, 10) });
 
-			windowText = "FFR Map Editor v1.06\n\n" +
+			windowText = "FFR Map Editor v1.07\n\n" +
 				"Main Developer\n   wildham\n\n" +
 				"Icons Designer\n   DarkmoonEX\n\n" +
 				"Based on the work of\n" +
 				"   tetron (Overworld Map Format)\n" +
 				"   madmartin (Enabling Logic)\n\n" +
+				"Beta Tester\n   shoombabi\n\n" +
 				"Source code at\n" +
 				"   https://github.com/wildham0/FFRMapEditorMono\n\n" +
 				"Randomizer\n" +

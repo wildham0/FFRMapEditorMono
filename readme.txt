@@ -1,4 +1,4 @@
-FFR Map Editor v1.05
+FFR Map Editor v1.07
 
 Credits ........... [S01]
 Version Changes ... [S02]
@@ -16,10 +16,17 @@ Based on the work of
   tetron (Overworld Map Format)
   madmartin (Enabling Logic)
 
+Beta Tester
+  shoombabi
+
 Source code at
   https://github.com/wildham0/FFRMapEditorMono
 
 *** Version Change *** [S02]
+1.07: - Fix Save As bug.
+      - Fix file corruption bug.
+1.06: - Fix Undo/Redo options.
+      - Fix crash on saving.
 1.05: - Add Selection and Copy/Paste.
 1.04: - Add Gridlines and Coordinates options.
 1.03: - Fixed FFR locations error at import.

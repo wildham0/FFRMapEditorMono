@@ -37,11 +37,13 @@ namespace FFRMapEditorMono.MysticQuest
 			string serializedOwData = GetJsonString();
 			using var stream = new StreamWriter(file);
 			stream.Write(serializedOwData);
+			stream.Close();
 		}
 		public override void ReadFile(Stream file, WriteFormat format)
 		{
 			using var stream = new StreamReader(file);
 			var jsonstring = stream.ReadToEnd();
+			stream.Close();
 			LoadMapData(jsonstring);
 		}
 	}

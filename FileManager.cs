@@ -125,6 +125,7 @@ namespace FFRMapEditorMono
 		public bool FilenameUpdated { get; set; }
 		//public virtual object MapData { get; set; }
 		public SettingsManager Settings { get; set; }
+		public SavingMode SaveMode { get; set; }
 		public FileManager(GameMode _mode)
 		{
 			LoadedMapPath = "";
@@ -134,6 +135,7 @@ namespace FFRMapEditorMono
 			ManagerMode = _mode;
 			MapDataMQ = new();
 			MapDataFF = new();
+			SaveMode = SavingMode.SaveAs;
 
 			if (ManagerMode == GameMode.FFR)
 			{
@@ -233,12 +235,14 @@ namespace FFRMapEditorMono
 				{
 					using var stream = new BinaryWriter(file);
 					stream.Write(MapDataFF.DecodeMap());
+					stream.Close();
 				}
 				else
 				{
 					string serializedOwData = JsonSerializer.Serialize<OwMapExchangeData>(MapDataFF, new JsonSerializerOptions { WriteIndented = true });
 					using var stream = new StreamWriter(file);
 					stream.Write(serializedOwData);
+					stream.Close();
 				}
 			}
 			else if (ManagerMode == GameMode.FFMQ)
@@ -246,6 +250,7 @@ namespace FFRMapEditorMono
 				string serializedOwData = GetJsonString();
 				using var stream = new StreamWriter(file);
 				stream.Write(serializedOwData);
+				stream.Close();
 			}
 		}
 		public virtual void ReadFile(Stream file, WriteFormat format)
@@ -256,6 +261,7 @@ namespace FFRMapEditorMono
 				{
 					using var stream = new BinaryReader(file);
 					var dataarray = stream.ReadBytes(0x10000);
+					stream.Close();
 
 					MapDataFF = new();
 					MapDataFF.EncodeMapFromBytes(dataarray);
@@ -264,6 +270,7 @@ namespace FFRMapEditorMono
 				{
 					using var stream = new StreamReader(file);
 					var jsonstring = stream.ReadToEnd();
+					stream.Close();
 
 					MapDataFF = JsonSerializer.Deserialize<OwMapExchangeData>(jsonstring);
 				}
@@ -272,6 +279,7 @@ namespace FFRMapEditorMono
 			{
 				using var stream = new StreamReader(file);
 				var jsonstring = stream.ReadToEnd();
+				stream.Close();
 				LoadMapData(jsonstring);
 			}
 		}
@@ -301,11 +309,13 @@ namespace FFRMapEditorMono
 				if (map.MissingMapObjects.Any() || !map.DefaultDockPlaced || map.MissingRequiredTiles.Any())
 				{
 					tasks.Add(new EditorTask(EditorTasks.SaveWarningOpen));
-					tasks.Add(new EditorTask(EditorTasks.SaveWarningUpdate, task.Value));
+					tasks.Add(new EditorTask(EditorTasks.SaveWarningUpdate));
+					SaveMode = (SavingMode)task.Value;
 				}
 				else
 				{
 					tasks.Add(new EditorTask(EditorTasks.SaveNoWarning, task.Value));
+					SaveMode = (SavingMode)task.Value;
 				}
 			}
 
@@ -328,7 +338,7 @@ namespace FFRMapEditorMono
 
 			if (tasks.Pop(EditorTasks.SaveNoWarning, out task))
 			{
-				if (task.Value == (int)SavingMode.Save)
+				if (SaveMode == SavingMode.Save)
 				{
 					if (FileSelected())
 					{
@@ -341,7 +351,7 @@ namespace FFRMapEditorMono
 						filesaved = SaveFileAs();
 					}
 				}
-				else if (task.Value == (int)SavingMode.SaveAs)
+				else if (SaveMode == SavingMode.SaveAs)
 				{
 					LoadMapData(map);
 					filesaved = SaveFileAs();
@@ -405,7 +415,7 @@ namespace FFRMapEditorMono
 
 			if (tasks.Pop(EditorTasks.SaveNoWarning, out task))
 			{
-				if (task.Value == (int)SavingMode.Save)
+				if (SaveMode == SavingMode.Save)
 				{
 					if (FileSelected())
 					{
@@ -418,7 +428,7 @@ namespace FFRMapEditorMono
 						filesaved = SaveFileAs();
 					}
 				}
-				else if (task.Value == (int)SavingMode.SaveAs)
+				else if (SaveMode == SavingMode.SaveAs)
 				{
 					LoadMapData(map);
 					filesaved = SaveFileAs();
@@ -533,6 +543,7 @@ namespace FFRMapEditorMono
 			string serializedOwData = GetJsonString();
 			using var stream = new StreamWriter("backupowmap.json");
 			stream.Write(serializedOwData);
+			stream.Close();
 
 			return true;
 		}
@@ -545,6 +556,7 @@ namespace FFRMapEditorMono
 			string serializedData = JsonSerializer.Serialize<SettingsManager>(Settings, new JsonSerializerOptions { WriteIndented = true });
 			using var stream = new StreamWriter("settings.json");
 			stream.Write(serializedData);
+			stream.Close();
 		}
 		public void LoadSettings()
 		{
@@ -555,6 +567,8 @@ namespace FFRMapEditorMono
 
 			using var stream = new StreamReader("settings.json");
 				var jsonstring = stream.ReadToEnd();
+			stream.Close();
+
 
 			Settings = JsonSerializer.Deserialize<SettingsManager>(jsonstring);
 			
