@@ -4227,117 +4227,29 @@
       ]
     },
     {
-      "PropertyByte1": 3,
+      "PropertyByte1": 7,
       "PropertyByte2": 0,
       "GraphicTiles": [
         {
-          "Tile": 2,
+          "Tile": 234,
           "HorizontalFlip": false
         },
         {
-          "Tile": 1,
+          "Tile": 235,
           "HorizontalFlip": false
         },
         {
-          "Tile": 2,
+          "Tile": 250,
           "HorizontalFlip": false
         },
         {
-          "Tile": 17,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]
     },
     {
-      "PropertyByte1": 3,
-      "PropertyByte2": 0,
-      "GraphicTiles": [
-        {
-          "Tile": 2,
-          "HorizontalFlip": false
-        },
-        {
-          "Tile": 1,
-          "HorizontalFlip": false
-        },
-        {
-          "Tile": 18,
-          "HorizontalFlip": false
-        },
-        {
-          "Tile": 17,
-          "HorizontalFlip": false
-        }
-      ]
-    },
-    {
-      "PropertyByte1": 2,
-      "PropertyByte2": 0,
-      "GraphicTiles": [
-        {
-          "Tile": 57,
-          "HorizontalFlip": false
-        },
-        {
-          "Tile": 42,
-          "HorizontalFlip": false
-        },
-        {
-          "Tile": 41,
-          "HorizontalFlip": true
-        },
-        {
-          "Tile": 16,
-          "HorizontalFlip": false
-        }
-      ]
-    },
-    {
-      "PropertyByte1": 2,
-      "PropertyByte2": 0,
-      "GraphicTiles": [
-        {
-          "Tile": 58,
-          "HorizontalFlip": false
-        },
-        {
-          "Tile": 42,
-          "HorizontalFlip": false
-        },
-        {
-          "Tile": 16,
-          "HorizontalFlip": false
-        },
-        {
-          "Tile": 17,
-          "HorizontalFlip": false
-        }
-      ]
-    },
-    {
-      "PropertyByte1": 2,
-      "PropertyByte2": 0,
-      "GraphicTiles": [
-        {
-          "Tile": 58,
-          "HorizontalFlip": false
-        },
-        {
-          "Tile": 57,
-          "HorizontalFlip": true
-        },
-        {
-          "Tile": 16,
-          "HorizontalFlip": false
-        },
-        {
-          "Tile": 56,
-          "HorizontalFlip": false
-        }
-      ]
-    },
-    {
-      "PropertyByte1": 2,
+      "PropertyByte1": 7,
       "PropertyByte2": 0,
       "GraphicTiles": [
         {
@@ -4345,7 +4257,29 @@
           "HorizontalFlip": false
         },
         {
-          "Tile": 41,
+          "Tile": 233,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 250,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 251,
+          "HorizontalFlip": false
+        }
+      ]
+    },
+    {
+      "PropertyByte1": 7,
+      "PropertyByte2": 0,
+      "GraphicTiles": [
+        {
+          "Tile": 0,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 1,
           "HorizontalFlip": false
         },
         {
@@ -4353,26 +4287,92 @@
           "HorizontalFlip": false
         },
         {
-          "Tile": 56,
+          "Tile": 233,
           "HorizontalFlip": false
         }
       ]
     },
     {
-      "PropertyByte1": 2,
+      "PropertyByte1": 7,
       "PropertyByte2": 0,
       "GraphicTiles": [
         {
-          "Tile": 56,
-          "HorizontalFlip": true
-        },
-        {
-          "Tile": 1,
+          "Tile": 0,
           "HorizontalFlip": false
         },
         {
-          "Tile": 41,
-          "HorizontalFlip": true
+          "Tile": 235,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 250,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 251,
+          "HorizontalFlip": false
+        }
+      ]
+    },
+    {
+      "PropertyByte1": 7,
+      "PropertyByte2": 0,
+      "GraphicTiles": [
+        {
+          "Tile": 0,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 235,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 233,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 251,
+          "HorizontalFlip": false
+        }
+      ]
+    },
+    {
+      "PropertyByte1": 7,
+      "PropertyByte2": 0,
+      "GraphicTiles": [
+        {
+          "Tile": 249,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 235,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 16,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 251,
+          "HorizontalFlip": false
+        }
+      ]
+    },
+    {
+      "PropertyByte1": 7,
+      "PropertyByte2": 0,
+      "GraphicTiles": [
+        {
+          "Tile": 0,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 249,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 16,
+          "HorizontalFlip": false
         },
         {
           "Tile": 17,
@@ -4385,19 +4385,19 @@
       "PropertyByte2": 0,
       "GraphicTiles": [
         {
-          "Tile": 128,
+          "Tile": 234,
           "HorizontalFlip": false
         },
         {
-          "Tile": 129,
+          "Tile": 235,
           "HorizontalFlip": false
         },
         {
-          "Tile": 144,
+          "Tile": 16,
           "HorizontalFlip": false
         },
         {
-          "Tile": 145,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]
@@ -4407,41 +4407,41 @@
       "PropertyByte2": 0,
       "GraphicTiles": [
         {
-          "Tile": 130,
+          "Tile": 234,
           "HorizontalFlip": false
         },
         {
-          "Tile": 131,
+          "Tile": 235,
           "HorizontalFlip": false
         },
         {
-          "Tile": 147,
+          "Tile": 70,
           "HorizontalFlip": false
         },
         {
-          "Tile": 147,
+          "Tile": 248,
           "HorizontalFlip": false
         }
       ]
     },
     {
-      "PropertyByte1": 0,
-      "PropertyByte2": 5,
+      "PropertyByte1": 7,
+      "PropertyByte2": 0,
       "GraphicTiles": [
         {
-          "Tile": 138,
+          "Tile": 233,
+          "HorizontalFlip": true
+        },
+        {
+          "Tile": 1,
           "HorizontalFlip": false
         },
         {
-          "Tile": 139,
+          "Tile": 250,
           "HorizontalFlip": false
         },
         {
-          "Tile": 138,
-          "HorizontalFlip": false
-        },
-        {
-          "Tile": 139,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]
@@ -4579,23 +4579,23 @@
       ]
     },
     {
-      "PropertyByte1": 2,
+      "PropertyByte1": 7,
       "PropertyByte2": 0,
       "GraphicTiles": [
         {
-          "Tile": 0,
+          "Tile": 204,
           "HorizontalFlip": false
         },
         {
-          "Tile": 1,
+          "Tile": 220,
           "HorizontalFlip": false
         },
         {
-          "Tile": 16,
+          "Tile": 71,
           "HorizontalFlip": false
         },
         {
-          "Tile": 17,
+          "Tile": 71,
           "HorizontalFlip": false
         }
       ]
@@ -8767,11 +8767,11 @@
       "PropertyByte2": 133,
       "GraphicTiles": [
         {
-          "Tile": 160,
+          "Tile": 164,
           "HorizontalFlip": false
         },
         {
-          "Tile": 161,
+          "Tile": 165,
           "HorizontalFlip": false
         },
         {
@@ -8789,11 +8789,11 @@
       "PropertyByte2": 133,
       "GraphicTiles": [
         {
-          "Tile": 162,
+          "Tile": 180,
           "HorizontalFlip": false
         },
         {
-          "Tile": 163,
+          "Tile": 181,
           "HorizontalFlip": false
         },
         {
@@ -9489,8 +9489,8 @@
       ]
     },
     {
-      "PropertyByte1": 51,
-      "PropertyByte2": 128,
+      "PropertyByte1": 7,
+      "PropertyByte2": 0,
       "GraphicTiles": [
         {
           "Tile": 207,
@@ -10307,11 +10307,11 @@
       "PropertyByte2": 132,
       "GraphicTiles": [
         {
-          "Tile": 160,
+          "Tile": 164,
           "HorizontalFlip": false
         },
         {
-          "Tile": 161,
+          "Tile": 165,
           "HorizontalFlip": false
         },
         {
@@ -10329,11 +10329,11 @@
       "PropertyByte2": 132,
       "GraphicTiles": [
         {
-          "Tile": 162,
+          "Tile": 180,
           "HorizontalFlip": false
         },
         {
-          "Tile": 163,
+          "Tile": 181,
           "HorizontalFlip": false
         },
         {
@@ -10351,11 +10351,11 @@
       "PropertyByte2": 136,
       "GraphicTiles": [
         {
-          "Tile": 160,
+          "Tile": 164,
           "HorizontalFlip": false
         },
         {
-          "Tile": 161,
+          "Tile": 165,
           "HorizontalFlip": false
         },
         {
@@ -10373,11 +10373,11 @@
       "PropertyByte2": 136,
       "GraphicTiles": [
         {
-          "Tile": 162,
+          "Tile": 180,
           "HorizontalFlip": false
         },
         {
-          "Tile": 163,
+          "Tile": 181,
           "HorizontalFlip": false
         },
         {
@@ -10919,200 +10919,200 @@
       ]
     },
     {
-      "PropertyByte1": 7,
-      "PropertyByte2": 8,
+      "PropertyByte1": 0,
+      "PropertyByte2": 0,
       "GraphicTiles": [
         {
-          "Tile": 6,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 7,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 22,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 23,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]
     },
     {
-      "PropertyByte1": 7,
-      "PropertyByte2": 8,
+      "PropertyByte1": 0,
+      "PropertyByte2": 0,
       "GraphicTiles": [
         {
-          "Tile": 7,
-          "HorizontalFlip": true
-        },
-        {
-          "Tile": 6,
-          "HorizontalFlip": true
-        },
-        {
-          "Tile": 23,
-          "HorizontalFlip": true
-        },
-        {
-          "Tile": 22,
-          "HorizontalFlip": true
-        }
-      ]
-    },
-    {
-      "PropertyByte1": 7,
-      "PropertyByte2": 8,
-      "GraphicTiles": [
-        {
-          "Tile": 8,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 9,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 24,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 25,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]
     },
     {
-      "PropertyByte1": 7,
-      "PropertyByte2": 8,
+      "PropertyByte1": 0,
+      "PropertyByte2": 0,
       "GraphicTiles": [
         {
-          "Tile": 9,
-          "HorizontalFlip": true
-        },
-        {
-          "Tile": 8,
-          "HorizontalFlip": true
-        },
-        {
-          "Tile": 25,
-          "HorizontalFlip": true
-        },
-        {
-          "Tile": 24,
-          "HorizontalFlip": true
-        }
-      ]
-    },
-    {
-      "PropertyByte1": 3,
-      "PropertyByte2": 8,
-      "GraphicTiles": [
-        {
-          "Tile": 192,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 193,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 208,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 209,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]
     },
     {
-      "PropertyByte1": 3,
-      "PropertyByte2": 8,
+      "PropertyByte1": 0,
+      "PropertyByte2": 0,
       "GraphicTiles": [
         {
-          "Tile": 194,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 193,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 210,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 209,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]
     },
     {
-      "PropertyByte1": 3,
-      "PropertyByte2": 8,
+      "PropertyByte1": 0,
+      "PropertyByte2": 0,
       "GraphicTiles": [
         {
-          "Tile": 194,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 193,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 211,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 209,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]
     },
     {
-      "PropertyByte1": 3,
-      "PropertyByte2": 128,
+      "PropertyByte1": 0,
+      "PropertyByte2": 0,
       "GraphicTiles": [
         {
-          "Tile": 0,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 1,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 16,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 17,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]
     },
     {
-      "PropertyByte1": 1,
-      "PropertyByte2": 8,
+      "PropertyByte1": 0,
+      "PropertyByte2": 0,
       "GraphicTiles": [
         {
-          "Tile": 240,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 240,
-          "HorizontalFlip": true
-        },
-        {
-          "Tile": 240,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 240,
-          "HorizontalFlip": true
+          "Tile": 251,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 251,
+          "HorizontalFlip": false
+        }
+      ]
+    },
+    {
+      "PropertyByte1": 0,
+      "PropertyByte2": 0,
+      "GraphicTiles": [
+        {
+          "Tile": 251,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 251,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 251,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 251,
+          "HorizontalFlip": false
+        }
+      ]
+    },
+    {
+      "PropertyByte1": 0,
+      "PropertyByte2": 0,
+      "GraphicTiles": [
+        {
+          "Tile": 251,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 251,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 251,
+          "HorizontalFlip": false
+        },
+        {
+          "Tile": 251,
+          "HorizontalFlip": false
         }
       ]
     },
@@ -20941,19 +20941,19 @@
       "PropertyByte2": 8,
       "GraphicTiles": [
         {
-          "Tile": 192,
+          "Tile": 160,
           "HorizontalFlip": false
         },
         {
-          "Tile": 192,
+          "Tile": 161,
           "HorizontalFlip": false
         },
         {
-          "Tile": 192,
+          "Tile": 176,
           "HorizontalFlip": false
         },
         {
-          "Tile": 192,
+          "Tile": 177,
           "HorizontalFlip": false
         }
       ]
@@ -21161,19 +21161,19 @@
       "PropertyByte2": 8,
       "GraphicTiles": [
         {
-          "Tile": 192,
+          "Tile": 160,
           "HorizontalFlip": false
         },
         {
-          "Tile": 192,
+          "Tile": 161,
           "HorizontalFlip": false
         },
         {
-          "Tile": 192,
+          "Tile": 176,
           "HorizontalFlip": false
         },
         {
-          "Tile": 192,
+          "Tile": 177,
           "HorizontalFlip": false
         }
       ]
@@ -21927,45 +21927,45 @@
       ]
     },
     {
-      "PropertyByte1": 0,
-      "PropertyByte2": 80,
+      "PropertyByte1": 3,
+      "PropertyByte2": 8,
       "GraphicTiles": [
         {
-          "Tile": 160,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 161,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 176,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 177,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]
     },
     {
-      "PropertyByte1": 0,
-      "PropertyByte2": 80,
+      "PropertyByte1": 113,
+      "PropertyByte2": 8,
       "GraphicTiles": [
         {
-          "Tile": 162,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 163,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 178,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 179,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]
@@ -22549,19 +22549,19 @@
       "PropertyByte2": 0,
       "GraphicTiles": [
         {
-          "Tile": 96,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 96,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 96,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 96,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]
@@ -23997,23 +23997,23 @@
       ]
     },
     {
-      "PropertyByte1": 7,
-      "PropertyByte2": 8,
+      "PropertyByte1": 0,
+      "PropertyByte2": 128,
       "GraphicTiles": [
         {
-          "Tile": 224,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 225,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 240,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 241,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]
@@ -24063,23 +24063,23 @@
       ]
     },
     {
-      "PropertyByte1": 7,
-      "PropertyByte2": 8,
+      "PropertyByte1": 0,
+      "PropertyByte2": 136,
       "GraphicTiles": [
         {
-          "Tile": 199,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 200,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 215,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 216,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]
@@ -25229,24 +25229,24 @@
       ]
     },
     {
-      "PropertyByte1": 7,
-      "PropertyByte2": 8,
+      "PropertyByte1": 1,
+      "PropertyByte2": 152,
       "GraphicTiles": [
         {
-          "Tile": 2,
-          "HorizontalFlip": true
+          "Tile": 251,
+          "HorizontalFlip": false
         },
         {
-          "Tile": 3,
-          "HorizontalFlip": true
+          "Tile": 251,
+          "HorizontalFlip": false
         },
         {
-          "Tile": 18,
-          "HorizontalFlip": true
+          "Tile": 251,
+          "HorizontalFlip": false
         },
         {
-          "Tile": 19,
-          "HorizontalFlip": true
+          "Tile": 251,
+          "HorizontalFlip": false
         }
       ]
     },
@@ -25273,23 +25273,23 @@
       ]
     },
     {
-      "PropertyByte1": 0,
-      "PropertyByte2": 5,
+      "PropertyByte1": 1,
+      "PropertyByte2": 153,
       "GraphicTiles": [
         {
-          "Tile": 10,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 11,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 10,
+          "Tile": 251,
           "HorizontalFlip": false
         },
         {
-          "Tile": 11,
+          "Tile": 251,
           "HorizontalFlip": false
         }
       ]

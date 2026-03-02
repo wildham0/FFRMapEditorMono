@@ -32,7 +32,7 @@ namespace FFRMapEditorMono.MysticQuest
 		}
 		public override void Update(Canvas canvas, CurrentTool tool)
 		{
-			UpdateBrushSize(tool.BrushSize);
+			//UpdateBrushSize(tool.BrushSize);
 			UpdateGridSize(canvas.GridSize);
 		}
 		public void UpdateBrushSize(int size)
@@ -54,7 +54,8 @@ namespace FFRMapEditorMono.MysticQuest
 			("Resize", new() { new EditorTask(EditorTasks.ResizeToggle) }, new() { new EditorTask(EditorTasks.None) }),
 			("Selector", new() { new EditorTask(EditorTasks.SelectorSetTool) }, new() { new EditorTask(EditorTasks.None) }),
 			("Tile Viewer", new() { new EditorTask(EditorTasks.ToggleTileViewer) }, new()),
-			("MapObjects", new() { new EditorTask(EditorTasks.MapObjectsOpen), new EditorTask(EditorTasks.MapObjectsSetTool) }, new() { new EditorTask(EditorTasks.None) }),
+			("Toggle Tile Data", new() { new EditorTask(EditorTasks.ToggleTileInfoCanvas), new EditorTask(EditorTasks.ToggleTileInfoPicker) }, new() { new EditorTask(EditorTasks.ToggleTileInfoCanvas), new EditorTask(EditorTasks.ToggleTileInfoPicker) }),
+			//("MapObjects", new() { new EditorTask(EditorTasks.MapObjectsOpen), new EditorTask(EditorTasks.MapObjectsSetTool) }, new() { new EditorTask(EditorTasks.None) }),
 			("Undo", new() { new EditorTask(EditorTasks.PaintingUndo) }, new() ),
 			("Redo", new() { new EditorTask(EditorTasks.PaintingRedo) }, new() ),
 			("Toggle Gridlines: XX", new() { new EditorTask(EditorTasks.ToggleGridlines) }, new() { new EditorTask(EditorTasks.UpdateGridsize) } ),

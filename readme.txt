@@ -1,4 +1,4 @@
-FFR Map Editor v1.07
+FFR Map Editor v1.08
 
 Credits ........... [S01]
 Version Changes ... [S02]
@@ -23,6 +23,7 @@ Source code at
   https://github.com/wildham0/FFRMapEditorMono
 
 *** Version Change *** [S02]
+1.08: - Fix Smart Brush smoothing tiles on hovering
 1.07: - Fix Save As bug.
       - Fix file corruption bug.
 1.06: - Fix Undo/Redo options.

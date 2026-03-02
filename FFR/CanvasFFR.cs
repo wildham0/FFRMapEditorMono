@@ -264,7 +264,7 @@ namespace FFRMapEditorMono.FFR
 		{
 			base.UpdateTile(windowSize, tool);
 
-			if (tool.Tool == ToolAction.Brush)
+			if (tool.Tool == ToolAction.Brush && currentlyDrawing)
 			{
 				int middlex = (int)(mouse.Position.X - viewOffset.X) / (int)(16 * Zoom);
 				int middley = (int)(mouse.Position.Y - viewOffset.Y) / (int)(16 * Zoom);

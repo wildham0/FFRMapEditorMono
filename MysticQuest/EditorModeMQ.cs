@@ -37,7 +37,7 @@ namespace FFRMapEditorMono.MysticQuest
 				{ "selectors16", content.Load<Texture2D>("cursorsmerge16") },
 				{ "selectors32", content.Load<Texture2D>("cursorsmerge32") },
 				{ "infowindow", content.Load<Texture2D>("windowborder") },
-				{ "tools", content.Load<Texture2D>("tools") },
+				{ "tools", content.Load<Texture2D>("ffmqtools") },
 				{ "placingicons", content.Load<Texture2D>("placingicons") },
 				{ "resizeicons", content.Load<Texture2D>("ffmq_resizetool") },
 				{ "button", content.Load<Texture2D>("button") },

@@ -86,6 +86,7 @@ namespace FFRMapEditorMono.MysticQuest
 		private GraphicRows graphicRows;
 		private TilesProperties tilesProperties;
 		private MapLayers currentLayer = MapLayers.EditLayer1;
+		private bool showTileData = false;
 
 		readonly private List<(int x, int y)> mapDimensions = new() { (0x10, 0x10), (0x20, 0x10), (0x30, 0x10), (0x40, 0x10), (0x10, 0x20), (0x20, 0x20), (0x30, 0x20), (0x40, 0x20), (0x10, 0x30), (0x20, 0x30), (0x30, 0x30), (0x40, 0x30), (0x10, 0x40), (0x20, 0x40), (0x30, 0x40), (0x40, 0x40) };
 
@@ -223,6 +224,12 @@ namespace FFRMapEditorMono.MysticQuest
 				ResizeMap(task.Value);
 				DrawMap();
 			}
+
+			if (taskManager.Pop(EditorTasks.ToggleTileInfoCanvas, out task))
+			{
+				showTileData = !showTileData;
+				DrawMap();
+			}
 		}
 		private void ResizeMap(int targetsize)
 		{
@@ -275,30 +282,40 @@ namespace FFRMapEditorMono.MysticQuest
 				{
 					int tilevalue = mapCanvas[MapSizeX * y + x];
 					bool layer2 = (tilevalue & 0x80) > 0;
-					bool translucent = false;
 					tilevalue = tilevalue & 0x7F;
+					bool translucent = false;
 
-					if (currentLayer == MapLayers.EditLayer1 && layer2)
+					bool isScript = (Tiles[tilevalue].PropertyByte2 & 0x88) == 0x88;
+					bool isTelepo = !isScript && (Tiles[tilevalue].PropertyByte2 & 0x80) == 0x80;
+					int level = Tiles[tilevalue].PropertyByte1 & 0x07;
+
+					if ((currentLayer == MapLayers.EditLayer1 && layer2) || (currentLayer == MapLayers.EditLayer2 && !layer2))
 					{
 						translucent = true;
 					}
-					else if (currentLayer == MapLayers.EditLayer2 && !layer2)
-					{
-						translucent = true;
-					}
-					else if (currentLayer == MapLayers.ViewLayer1 && layer2)
+					else if ((currentLayer == MapLayers.ViewLayer1 && layer2) || (currentLayer == MapLayers.ViewLayer2 && !layer2))
 					{
 						tilevalue = 0x00;
-					}
-					else if (currentLayer == MapLayers.ViewLayer2 && !layer2)
-					{
-						tilevalue = 0x00;
+						isScript = false;
+						isTelepo = false;
 					}
 
 					int xoffset = tilevalue % 0x10;
 					int yoffset = tilevalue / 0x10;
 
+					int red = 255 - (translucent ? 155 : 0) - ((showTileData && isScript) ? 100 : 0);
+					int green = 255 - (translucent ? 155 : 0) - ((showTileData && isTelepo) ? 100 : 0);
+					int blue = 255 - (translucent ? 155 : 0) - ((showTileData && (isTelepo || isScript)) ? 100 : 0);
+					Color tilecolor = new Color(red, green, blue, 255);
 
+					spriteBatch.Draw(TileSet, new Vector2(x * 16, y * 16), new Rectangle(xoffset * 16, yoffset * 16, 16, 16), tilecolor);
+
+					if (showTileData)
+					{
+						spriteBatch.DrawString(font, $"{level}", new Vector2(x * 16 + 3, y * 16 + 1), Color.White);
+					}
+
+					/*
 					if (translucent)
 					{
 						spriteBatch.Draw(TileSet, new Vector2(x * 16, y * 16), new Rectangle(xoffset * 16, yoffset * 16, 16, 16), new Color(100, 100, 100, 255));
@@ -306,8 +323,13 @@ namespace FFRMapEditorMono.MysticQuest
 					else
 					{
 						spriteBatch.Draw(TileSet, new Vector2(x * 16, y * 16), new Rectangle(xoffset * 16, yoffset * 16, 16, 16), Color.White);
-					}
-					
+					}*/
+
+						//spriteBatch.Draw(TileSet, new Vector2(x * 16, y * 16), new Rectangle(xoffset * 16, yoffset * 16, 16, 16), Color.White);
+						/*
+						if (showTileData)
+						spriteBatch.DrawString(font, "1", new Vector2(x * 16 + 2, y * 16  + 2), Color.White);*/
+
 				}
 			}
 

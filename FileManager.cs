@@ -396,6 +396,7 @@ namespace FFRMapEditorMono
 			if (tasks.Pop(EditorTasks.FileSaveMap, out task))
 			{
 				tasks.Add(new EditorTask(EditorTasks.SaveNoWarning, task.Value));
+				SaveMode = (SavingMode)task.Value;
 			}
 
 			if (tasks.Pop(EditorTasks.FileLoadMap, out task))

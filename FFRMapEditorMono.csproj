@@ -33,6 +33,7 @@
 	  <EmbeddedResource Include="MQdata\FFMQR_GraphicRows.json" />
 	  <EmbeddedResource Include="MQdata\FFMQR_MapPalettes.json" />
 	  <EmbeddedResource Include="MQdata\FFMQR_TilesProperties.json" />
+	  <EmbeddedResource Include="MQdata\FFMQR_TilesProperties_vanilla.json" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303" />

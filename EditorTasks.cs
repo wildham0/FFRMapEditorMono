@@ -109,6 +109,9 @@ namespace FFRMapEditorMono
 		InfoBoxUpdateLayer,
 		InfoBoxUpdateCoordinates,
 
+		ToggleTileInfoCanvas,
+		ToggleTileInfoPicker,
+
 		Undo,
 		Redo,
 		Copy,
